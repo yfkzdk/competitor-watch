@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>竞品监控系统 - 实时仪表板</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1 i {
+            color: #667eea;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .status-badge {
+            background: #27ae60;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge.warning {
+            background: #f39c12;
+        }
+
+        .status-badge.error {
+            background: #e74c3c;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f2f6;
+        }
+
+        .card-title {
+            font-size: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .monitor-list {
+            list-style: none;
+        }
+
+        .monitor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid #27ae60;
+            transition: all 0.3s ease;
+        }
+
+        .monitor-item:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+        }
+
+        .monitor-item.inactive {
+            border-left-color: #95a5a6;
+            opacity: 0.7;
+        }
+
+        .monitor-item.warning {
+            border-left-color: #f39c12;
+        }
+
+        .monitor-info h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .monitor-meta {
+            font-size: 13px;
+            color: #7f8c8d;
+            display: flex;
+            gap: 15px;
+        }
+
+        .monitor-status {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #e8f5e9;
+            color: #27ae60;
+        }
+
+        .monitor-status.inactive {
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+
+        .monitor-status.warning {
+            background: #fef5e7;
+            color: #f39c12;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f2f6;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #e4e6f1;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219653;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .config-list {
+            list-style: none;
+        }
+
+        .config-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid #3498db;
+        }
+
+        .config-item h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .config-meta {
+            font-size: 13px;
+            color: #7f8c8d;
+            display: flex;
+            gap: 15px;
+            margin-top: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            font-size: 14px;
+            margin-top: 30px;
+        }
+
+        .update-time {
+            color: #7f8c8d;
+            font-size: 13px;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #7f8c8d;
+        }
+
+        .loading i {
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-chart-line"></i> 竞品监控系统 - 实时仪表板</h1>
+                <p class="subtitle">实时监控竞品动态，掌握市场趋势</p>
+            </div>
+            <div id="systemStatus" class="status-badge">
+                <i class="fas fa-check-circle"></i> 系统正常
+            </div>
+        </div>
+
+        <!-- 系统状态卡片 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-server"></i> 系统状态</h2>
+                <span class="update-time">最后更新: <span id="lastUpdateTime">正在加载...</span></span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="monitorCount">0</div>
+                    <div class="stat-label">监控总数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="activeMonitors">0</div>
+                    <div class="stat-label">活动监控</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="dataPoints">0</div>
+                    <div class="stat-label">数据点</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="alertsCount">0</div>
+                    <div class="stat-label">告警</div>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="updateDashboard()">
+                    <i class="fas fa-sync-alt"></i> 立即更新
+                </button>
+                <button class="btn btn-secondary" onclick="loadAllMonitors()">
+                    <i class="fas fa-redo"></i> 刷新数据
+                </button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- 监控器列表 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-eye"></i> 监控器列表</h2>
+                    <span class="status-badge" id="activeMonitorBadge">0/0 活动</span>
+                </div>
+                <div id="monitorsList" class="loading">
+                    <i class="fas fa-spinner"></i> 加载监控器...
+                </div>
+                <div class="actions">
+                    <button class="btn btn-success" onclick="executeAllMonitors()">
+                        <i class="fas fa-play"></i> 执行全部
+                    </button>
+                </div>
+            </div>
+
+            <!-- 配置管理 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-cog"></i> 配置管理</h2>
+                </div>
+                <div id="configList" class="loading">
+                    <i class="fas fa-spinner"></i> 加载配置...
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="viewConfigs()">
+                        <i class="fas fa-file-alt"></i> 查看配置
+                    </button>
+                    <button class="btn btn-secondary" onclick="createNewConfig()">
+                        <i class="fas fa-plus"></i> 创建配置
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 性能图表 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-chart-bar"></i> 性能监控</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 系统信息 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-info-circle"></i> 系统信息</h2>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="cpuUsage">0%</div>
+                    <div class="stat-label">CPU使用率</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="memoryUsage">0MB</div>
+                    <div class="stat-label">内存使用</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="diskSpace">0GB</div>
+                    <div class="stat-label">磁盘空间</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="uptime">0:00</div>
+                    <div class="stat-label">运行时间</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 竞品监控系统 - 高级监控仪表板 | 版本: 5.0.0</p>
+            <p>系统状态: <span id="footerStatus">正在连接...</span> | API状态: <span id="apiStatus">检查中...</span></p>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let performanceChart = null;
+        let updateInterval = null;
+
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('竞品监控仪表板加载完成');
+            loadDashboardData();
+            startAutoUpdate();
+        });
+
+        // 加载仪表板数据
+        async function loadDashboardData() {
+            try {
+                // 加载监控器数据
+                const monitorsResponse = await fetch('/api/monitors');
+                const monitorsData = await monitorsResponse.json();
+
+                if (monitorsData.success) {
+                    updateMonitorsDisplay(monitorsData.data);
+                }
+
+                // 加载配置数据
+                const configsResponse = await fetch('/api/configs');
+                const configsData = await configsResponse.json();
+
+                if (configsData.success) {
+                    updateConfigsDisplay(configsData.data);
+                }
+
+                // 加载系统状态
+                const statusResponse = await fetch('/api/status');
+                const statusData = await statusResponse.json();
+
+                if (statusData.success) {
+                    updateSystemStatus(statusData.data);
+                }
+
+                updateFooterStatus(true, '数据加载完成');
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                updateFooterStatus(false, '连接失败: ' + error.message);
+                showError('无法连接到API服务器，请检查服务是否运行');
+            }
+        }
+
+        // 更新监控器显示
+        function updateMonitorsDisplay(data) {
+            // 更新统计信息
+            document.getElementById('monitorCount').textContent = data.total_monitors || 0;
+            document.getElementById('activeMonitors').textContent = data.active_monitors || 0;
+            document.getElementById('dataPoints').textContent = data.data_points || 0;
+
+            // 计算告警数量
+            const alertsCount = data.monitors ?
+                data.monitors.reduce((sum, monitor) => sum + (monitor.alerts || 0), 0) : 0;
+            document.getElementById('alertsCount').textContent = alertsCount;
+
+            // 更新活动监控器徽章
+            document.getElementById('activeMonitorBadge').textContent =
+                `${data.active_monitors || 0}/${data.total_monitors || 0} 活动`;
+
+            // 更新监控器列表
+            const monitorsList = document.getElementById('monitorsList');
+            if (data.monitors && data.monitors.length > 0) {
+                monitorsList.innerHTML = '';
+                data.monitors.forEach(monitor => {
+                    const monitorItem = createMonitorItem(monitor);
+                    monitorsList.appendChild(monitorItem);
+                });
+            } else {
+                monitorsList.innerHTML = '<div class="loading"><i class="fas fa-exclamation-triangle"></i> 暂无监控器</div>';
+            }
+
+            // 更新最后更新时间
+            if (data.last_update) {
+                document.getElementById('lastUpdateTime').textContent =
+                    new Date(data.last_update).toLocaleString('zh-CN');
+            }
+        }
+
+        // 创建监控器项目
+        function createMonitorItem(monitor) {
+            const div = document.createElement('div');
+            div.className = `monitor-item ${monitor.status === 'inactive' ? 'inactive' : ''} ${monitor.alerts > 0 ? 'warning' : ''}`;
+
+            const statusClass = monitor.status === 'active' ? '' : 'inactive';
+
+            div.innerHTML = `
+                <div class="monitor-info">
+                    <h4>${monitor.name || '未命名监控器'}</h4>
+                    <div class="monitor-meta">
+                        <span><i class="far fa-clock"></i> ${new Date(monitor.last_check).toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'})}</span>
+                        <span><i class="fas fa-database"></i> ${monitor.data_points || 0} 数据点</span>
+                        <span><i class="fas fa-bell"></i> ${monitor.alerts || 0} 告警</span>
+                    </div>
+                </div>
+                <div class="monitor-status ${statusClass} ${monitor.alerts > 0 ? 'warning' : ''}">
+                    ${monitor.status === 'active' ? '活动' : '未活动'} ${monitor.trend === 'up' ? '📈' : monitor.trend === 'down' ? '📉' : '➡️'}
+                </div>
+            `;
+
+            // 添加点击事件
+            div.addEventListener('click', () => viewMonitorDetails(monitor.id));
+
+            return div;
+        }
+
+        // 更新配置显示
+        function updateConfigsDisplay(data) {
+            const configList = document.getElementById('configList');
+
+            if (data.config_files && data.config_files.length > 0) {
+                configList.innerHTML = '<ul class="config-list"></ul>';
+                const ul = configList.querySelector('ul');
+
+                data.config_files.forEach(config => {
+                    const li = document.createElement('li');
+                    li.className = 'config-item';
+                    li.innerHTML = `
+                        <h4>${config.name}</h4>
+                        <div class="config-meta">
+                            <span><i class="far fa-file"></i> ${(config.size / 1024).toFixed(2)} KB</span>
+                            <span><i class="far fa-clock"></i> ${new Date(config.modified).toLocaleDateString('zh-CN')}</span>
+                        </div>
+                        <p style="margin-top: 8px; color: #666; font-size: 13px;">${config.preview || '无预览'}</p>
+                    `;
+                    ul.appendChild(li);
+                });
+
+                // 如果有生成的配置，也显示
+                if (data.generated_files && data.generated_files.length > 0) {
+                    const genSection = document.createElement('div');
+                    genSection.innerHTML = '<h4 style="margin: 20px 0 10px 0; color: #2c3e50;">生成的配置</h4><ul class="config-list"></ul>';
+                    const genUl = genSection.querySelector('ul');
+
+                    data.generated_files.forEach(config => {
+                        const li = document.createElement('li');
+                        li.className = 'config-item';
+                        li.innerHTML = `
+                            <h4>${config.name}</h4>
+                            <div class="config-meta">
+                                <span><i class="fas fa-project-diagram"></i> ${config.monitors || 0} 个监控器</span>
+                                <span><i class="far fa-file"></i> ${(config.size / 1024).toFixed(2)} KB</span>
+                                <span><i class="far fa-clock"></i> ${new Date(config.modified).toLocaleDateString('zh-CN')}</span>
+                            </div>
+                        `;
+                        genUl.appendChild(li);
+                    });
+                    ul.appendChild(genSection);
+                }
+            } else {
+                configList.innerHTML = '<div class="loading"><i class="fas fa-exclamation-triangle"></i> 暂无配置</div>';
+            }
+        }
+
+        // 更新系统状态
+        function updateSystemStatus(data) {
+            // 更新系统信息
+            if (data.cpu_usage) {
+                document.getElementById('cpuUsage').textContent = `${data.cpu_usage.percent.toFixed(1)}%`;
+            }
+
+            if (data.memory_usage) {
+                document.getElementById('memoryUsage').textContent =
+                    `${data.memory_usage.used_mb}MB / ${data.memory_usage.total_mb}MB`;
+            }
+
+            if (data.disk_space) {
+                document.getElementById('diskSpace').textContent =
+                    `${data.disk_space.free_gb.toFixed(1)}GB / ${data.disk_space.total_gb.toFixed(1)}GB`;
+            }
+
+            document.getElementById('uptime').textContent = data.uptime || '未知';
+
+            // 更新系统状态徽章
+            const systemStatus = document.getElementById('systemStatus');
+            systemStatus.innerHTML = '<i class="fas fa-check-circle"></i> 系统正常';
+            systemStatus.className = 'status-badge';
+
+            // 更新图表
+            updatePerformanceChart(data);
+        }
+
+        // 更新性能图表
+        function updatePerformanceChart(data) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+
+            // 创建示例数据
+            const labels = ['1小时前', '45分钟前', '30分钟前', '15分钟前', '当前'];
+            const cpuData = [25, 30, 45, 35, data.cpu_usage?.percent || 25];
+            const memoryData = [40, 42, 48, 45, data.memory_usage?.percent || 45];
+
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'CPU使用率 (%)',
+                            data: cpuData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: '内存使用率 (%)',
+                            data: memoryData,
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '百分比 (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新仪表板
+        function updateDashboard() {
+            document.getElementById('monitorsList').innerHTML =
+                '<div class="loading"><i class="fas fa-spinner"></i> 更新数据中...</div>';
+
+            fetch('/api/update', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showMessage('数据更新成功');
+                        loadDashboardData();
+                    } else {
+                        showError('更新失败: ' + (data.error || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('更新失败:', error);
+                    showError('更新失败: ' + error.message);
+                });
+        }
+
+        // 加载所有监控器
+        function loadAllMonitors() {
+            loadDashboardData();
+            showMessage('重新加载监控数据');
+        }
+
+        // 执行所有监控器
+        function executeAllMonitors() {
+            showMessage('开始执行所有监控任务...');
+
+            // 这里可以调用API执行所有监控器
+            // fetch('/api/execute/all', { method: 'POST' })
+
+            setTimeout(() => {
+                showMessage('监控任务已开始执行，结果将在更新后显示');
+                updateDashboard();
+            }, 1000);
+        }
+
+        // 查看配置
+        function viewConfigs() {
+            showMessage('跳转到配置管理页面...');
+            // 这里可以跳转到配置管理页面
+        }
+
+        // 创建新配置
+        function createNewConfig() {
+            showMessage('创建新配置...');
+            // 这里可以打开配置创建界面
+        }
+
+        // 查看监控器详情
+        function viewMonitorDetails(monitorId) {
+            fetch(`/api/monitors/${monitorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`监控器详情:\n\n名称: ${data.data.name}\n状态: ${data.data.status}\n数据点: ${data.data.data_points}\n告警: ${data.data.alerts}\n趋势: ${data.data.trend}`);
+                    } else {
+                        showError('无法获取监控器详情');
+                    }
+                })
+                .catch(error => {
+                    console.error('获取详情失败:', error);
+                    showError('获取详情失败');
+                });
+        }
+
+        // 显示消息
+        function showMessage(message) {
+            console.log('消息:', message);
+            // 这里可以添加更漂亮的消息提示
+            alert(message);
+        }
+
+        // 显示错误
+        function showError(error) {
+            console.error('错误:', error);
+            // 这里可以添加更漂亮的错误提示
+            alert('错误: ' + error);
+        }
+
+        // 更新页脚状态
+        function updateFooterStatus(apiConnected, message) {
+            document.getElementById('footerStatus').textContent = message;
+            document.getElementById('apiStatus').textContent = apiConnected ? '已连接' : '断开';
+            document.getElementById('apiStatus').style.color = apiConnected ? '#27ae60' : '#e74c3c';
+        }
+
+        // 开始自动更新
+        function startAutoUpdate() {
+            // 每30秒自动更新一次
+            updateInterval = setInterval(() => {
+                loadDashboardData();
+            }, 30000); // 30秒
+
+            console.log('自动更新已启动 (30秒间隔)');
+        }
+
+        // 停止自动更新
+        function stopAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+                console.log('自动更新已停止');
+            }
+        }
+
+        // 页面关闭前清理
+        window.addEventListener('beforeunload', function() {
+            stopAutoUpdate();
+        });
+    </script>
+</body>
+</html>

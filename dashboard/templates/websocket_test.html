@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博监控 // WebSocket测试</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/cyberpunk.css">
+    <style>
+        /* ===== PAGE-SPECIFIC OVERRIDES ===== */
+        .main-content { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+
+        /* connection status indicator */
+        #connectionStatus {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 4px 14px;
+            border: 1px solid;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+        #connectionStatus.connected {
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(5,255,161,.2);
+        }
+        #connectionStatus.disconnected {
+            color: var(--neon-magenta);
+            border-color: var(--neon-magenta);
+            box-shadow: 0 0 10px rgba(255,42,109,.2);
+        }
+
+        /* controls row */
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* subscribe row */
+        .subscribe-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .subscribe-row .cyber-input {
+            width: 80px;
+        }
+
+        /* message log */
+        #messages {
+            max-height: 420px;
+            overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+        .msg-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(26,26,62,.4);
+            line-height: 1.5;
+        }
+        .msg-entry:last-child { border-bottom: none; }
+        .msg-time {
+            color: var(--text-dim);
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-right: 10px;
+        }
+        .msg-success { color: var(--neon-green); }
+        .msg-error { color: var(--neon-magenta); }
+        .msg-info { color: var(--text-primary); }
+
+        /* disabled button override */
+        .cyber-btn:disabled {
+            color: var(--text-dim);
+            border-color: var(--border-dim);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .cyber-btn:disabled:hover {
+            background: transparent;
+            box-shadow: none;
+        }
+
+        /* stat accent colors */
+        .stat-cyan   { --card-accent: var(--neon-cyan); }
+        .stat-green  { --card-accent: var(--neon-green); }
+        .stat-amber  { --card-accent: var(--neon-amber); }
+        .stat-purple { --card-accent: var(--neon-purple); }
+        .stat-magenta{ --card-accent: var(--neon-magenta); }
+    </style>
+</head>
+<body>
+
+    <!-- ===== TOPBAR ===== -->
+    <header class="cyber-topbar">
+        <div class="cyber-brand">
+            <h1>赛博监控</h1>
+            <span class="version">WS-TEST</span>
+        </div>
+        <nav class="cyber-nav">
+            <a href="/">首页</a>
+            <a href="/docs">接口文档</a>
+            <a href="/monitoring/dashboard">监控仪表板</a>
+            <a href="/product/v2?competitor_id=1">产品详情</a>
+        </nav>
+    </header>
+
+    <div class="main-content">
+
+        <!-- ===== CONNECTION PANEL ===== -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <span class="cyber-panel-title">连接控制</span>
+                <span id="connectionStatus" class="disconnected">未连接</span>
+            </div>
+            <div class="cyber-panel-body">
+                <div class="controls-row">
+                    <button class="cyber-btn" onclick="connectWebSocket()">连接WebSocket</button>
+                    <button class="cyber-btn cyber-btn-danger" onclick="disconnectWebSocket()" id="disconnectBtn" disabled>断开连接</button>
+                    <button class="cyber-btn cyber-btn-amber" onclick="sendPing()" id="pingBtn" disabled>发送心跳</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SUBSCRIBE PANEL ===== -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <span class="cyber-panel-title">订阅管理</span>
+            </div>
+            <div class="cyber-panel-body">
+                <div class="subscribe-row">
+                    <label class="cyber-label" style="margin:0">竞品ID</label>
+                    <input type="number" id="competitorId" value="1" min="1" class="cyber-input">
+                    <button class="cyber-btn" onclick="subscribeCompetitor()" id="subscribeBtn" disabled>订阅</button>
+                    <button class="cyber-btn cyber-btn-danger" onclick="unsubscribeCompetitor()" id="unsubscribeBtn" disabled>取消订阅</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== STATS PANEL ===== -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <span class="cyber-panel-title">实时统计</span>
+            </div>
+            <div class="cyber-panel-body">
+                <div class="cyber-stats-row" id="statsGrid">
+                    <div class="cyber-stat-card stat-cyan">
+                        <div class="stat-label">竞品总数</div>
+                        <div class="stat-value" id="competitorsTotal">-</div>
+                    </div>
+                    <div class="cyber-stat-card stat-green">
+                        <div class="stat-label">活跃监控</div>
+                        <div class="stat-value" id="activeCompetitors">-</div>
+                    </div>
+                    <div class="cyber-stat-card stat-amber">
+                        <div class="stat-label">最近价格</div>
+                        <div class="stat-value" id="recentPrices">-</div>
+                    </div>
+                    <div class="cyber-stat-card stat-purple">
+                        <div class="stat-label">最近评论</div>
+                        <div class="stat-value" id="recentReviews">-</div>
+                    </div>
+                    <div class="cyber-stat-card stat-magenta">
+                        <div class="stat-label">WebSocket连接</div>
+                        <div class="stat-value" id="wsConnections">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MESSAGE LOG PANEL ===== -->
+        <div class="cyber-panel">
+            <div class="cyber-panel-header">
+                <span class="cyber-panel-title">消息日志</span>
+            </div>
+            <div class="cyber-panel-body">
+                <div id="messages"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div class="cyber-toast-container" id="toastContainer"></div>
+
+    <script>
+        let socket = null;
+        let connected = false;
+
+        function connectWebSocket() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/monitoring`;
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                connected = true;
+                updateConnectionStatus(true);
+                addMessage('WebSocket连接成功', 'success');
+                enableButtons(true);
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                addMessage(`收到消息: ${JSON.stringify(data, null, 2)}`, 'info');
+
+                // 更新统计数据
+                if (data.type === 'stats_update') {
+                    updateStats(data.data);
+                }
+
+                // 处理订阅确认
+                if (data.type === 'subscribed') {
+                    addMessage(`已订阅竞品 ${data.competitor_id}`, 'success');
+                }
+
+                // 处理竞品更新
+                if (data.type === 'competitor_update') {
+                    addMessage(`竞品 ${data.competitor_id} 数据更新`, 'info');
+                    console.log('竞品数据:', data.data);
+                }
+            };
+
+            socket.onclose = () => {
+                connected = false;
+                updateConnectionStatus(false);
+                addMessage('WebSocket连接断开', 'error');
+                enableButtons(false);
+            };
+
+            socket.onerror = (error) => {
+                addMessage('WebSocket错误', 'error');
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function disconnectWebSocket() {
+            if (socket) {
+                socket.close();
+                socket = null;
+            }
+        }
+
+        function sendPing() {
+            if (socket && connected) {
+                socket.send(JSON.stringify({ action: 'ping' }));
+                addMessage('发送心跳', 'info');
+            }
+        }
+
+        function subscribeCompetitor() {
+            const competitorId = document.getElementById('competitorId').value;
+            if (socket && connected) {
+                socket.send(JSON.stringify({
+                    action: 'subscribe',
+                    competitor_id: parseInt(competitorId)
+                }));
+                addMessage(`订阅竞品 ${competitorId}`, 'info');
+            }
+        }
+
+        function unsubscribeCompetitor() {
+            const competitorId = document.getElementById('competitorId').value;
+            if (socket && connected) {
+                socket.send(JSON.stringify({
+                    action: 'unsubscribe',
+                    competitor_id: parseInt(competitorId)
+                }));
+                addMessage(`取消订阅竞品 ${competitorId}`, 'info');
+            }
+        }
+
+        function updateConnectionStatus(isConnected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (isConnected) {
+                statusEl.textContent = '已连接';
+                statusEl.className = 'connected';
+            } else {
+                statusEl.textContent = '未连接';
+                statusEl.className = 'disconnected';
+            }
+        }
+
+        function updateStats(data) {
+            document.getElementById('competitorsTotal').textContent = data.competitors_total || 0;
+            document.getElementById('activeCompetitors').textContent = data.active_competitors || 0;
+            document.getElementById('recentPrices').textContent = data.recent_prices || 0;
+            document.getElementById('recentReviews').textContent = data.recent_reviews || 0;
+            document.getElementById('wsConnections').textContent = data.websocket_connections || 0;
+        }
+
+        function addMessage(text, type = 'info') {
+            const messagesEl = document.getElementById('messages');
+            const entry = document.createElement('div');
+            entry.className = 'msg-entry';
+
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="msg-time">${time}</span><span class="msg-${type}">${text}</span>`;
+
+            messagesEl.appendChild(entry);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+
+            // also push a toast for success/error
+            if (type === 'success' || type === 'error') {
+                showToast(text, type);
+            }
+        }
+
+        function showToast(text, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'cyber-toast' + (type === 'error' ? ' error' : '');
+            toast.textContent = text;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'toast-out .3s ease-in forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function enableButtons(enabled) {
+            document.getElementById('disconnectBtn').disabled = !enabled;
+            document.getElementById('pingBtn').disabled = !enabled;
+            document.getElementById('subscribeBtn').disabled = !enabled;
+            document.getElementById('unsubscribeBtn').disabled = !enabled;
+        }
+
+        // 页面加载时自动连接
+        window.onload = () => {
+            addMessage('页面加载完成，点击"连接WebSocket"按钮开始测试', 'info');
+        };
+    </script>
+</body>
+</html>

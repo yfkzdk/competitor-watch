@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>竞品监控系统 - 诊断页面</title>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-box {
+            background: #1a1a1a;
+            border: 1px solid #00D9FF;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .success { color: #00FF88; }
+        .error { color: #FF0043; }
+        h1 { color: #00D9FF; }
+        code { background: #2a2a2a; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 竞品监控系统 - 诊断页面</h1>
+
+    <div class="test-box">
+        <h2>1. 基础测试</h2>
+        <p>✅ 如果你能看到这段文字，说明：</p>
+        <ul>
+            <li>浏览器可以访问 <code>http://localhost:5000</code></li>
+            <li>HTML 正常加载</li>
+            <li>CSS 样式正常（黑色背景，白色文字）</li>
+        </ul>
+    </div>
+
+    <div class="test-box">
+        <h2>2. API 测试</h2>
+        <p>点击按钮测试 API：</p>
+        <button onclick="testAPI()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            测试 API 连接
+        </button>
+        <div id="api-result" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>3. Vue 测试</h2>
+        <div id="vue-test">
+            <p>如果你看到 "Vue 正常工作"，说明 Vue 可以运行：</p>
+            <p style="font-size: 24px; color: #00FF88;">{{ message }}</p>
+        </div>
+    </div>
+
+    <div class="test-box">
+        <h2>4. 主页面链接</h2>
+        <p><a href="/" style="color: #00D9FF;">点击这里返回主页面</a></p>
+        <p>如果主页面还是黑色，请按 F12 打开浏览器控制台，查看是否有错误信息。</p>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+        // 测试 API
+        async function testAPI() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<p style="color: #FFB800;">测试中...</p>';
+
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                resultDiv.innerHTML = '<p class="success">✅ API 正常！</p>' +
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                resultDiv.innerHTML = '<p class="error">❌ API 错误: ' + error.message + '</p>';
+            }
+        }
+
+        // 测试 Vue
+        const { createApp, ref } = Vue;
+        createApp({
+            setup() {
+                const message = ref('Vue 正常工作！');
+                return { message };
+            }
+        }).mount('#vue-test');
+    </script>
+</body>
+</html>

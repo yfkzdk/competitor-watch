@@ -1,0 +1,77 @@
+{
+  "strategy_rules": {
+    "high_frequency_snapshot": {
+      "name": "高频轻量快照",
+      "description": "对高优先级目标进行高频轻量级快照采集",
+      "triggers": ["hourly", "priority:high", "breaking_news"],
+      "parameters": {
+        "frequency_minutes": 60,
+        "depth_level": "surface",
+        "content_types": ["headlines", "metadata", "pricing"],
+        "storage_cost_weight": 0.3,
+        "freshness_weight": 0.7,
+        "noise_reduction_rate": 0.85
+      },
+      "actions": [
+        "scrape_headlines",
+        "extract_metadata",
+        "check_pricing",
+        "store_snapshot"
+      ]
+    },
+    "low_frequency_deep_parse": {
+      "name": "低频深度解析",
+      "description": "对中低优先级目标进行低频深度内容解析",
+      "triggers": ["daily", "weekly", "priority:medium", "priority:low"],
+      "parameters": {
+        "frequency_hours": 24,
+        "depth_level": "deep",
+        "content_types": ["full_article", "technical_docs", "api_spec"],
+        "storage_cost_weight": 0.6,
+        "freshness_weight": 0.4,
+        "noise_reduction_rate": 0.95
+      },
+      "actions": [
+        "scrape_full_content",
+        "parse_technical_details",
+        "extract_key_metrics",
+        "perform_sentiment_analysis",
+        "store_analysis"
+      ]
+    },
+    "critical_event_driven": {
+      "name": "关键事件驱动",
+      "description": "基于事件触发的关键监控策略",
+      "triggers": ["product_launch", "price_change", "merger_acquisition", "major_outage"],
+      "parameters": {
+        "frequency": "event_driven",
+        "depth_level": "comprehensive",
+        "content_types": ["all_relevant"],
+        "storage_cost_weight": 0.2,
+        "freshness_weight": 0.8,
+        "noise_reduction_rate": 0.9
+      },
+      "actions": [
+        "monitor_event_sources",
+        "collect_contextual_data",
+        "analyze_impact",
+        "generate_alert",
+        "store_event_analysis"
+      ]
+    }
+  },
+  "scoring_weights": {
+    "information_freshness": 0.4,
+    "storage_cost": 0.3,
+    "noise_reduction": 0.3
+  },
+  "selection_criteria": {
+    "minimum_score": 0.7,
+    "validation_schema": "requirements_schema.json"
+  },
+  "dry_run": {
+    "enabled": false,
+    "mock_scoring": false,
+    "simulate_decision": false
+  }
+}

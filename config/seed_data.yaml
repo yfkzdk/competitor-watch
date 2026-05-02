@@ -1,0 +1,300 @@
+version: 2
+
+competitors:
+  # === 一线云厂商 ===
+  - version: 2
+    name: 阿里云
+    url: https://www.aliyun.com
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: ECS 云服务器"
+        data: {description: "弹性计算服务"}
+        severity: info
+        source: https://www.aliyun.com/product/ecs
+      - type: product_detected
+        title: "产品: OSS 对象存储"
+        data: {description: "海量安全低成本的云存储服务"}
+        severity: info
+        source: https://www.aliyun.com/product/oss
+      - type: product_detected
+        title: "产品: RDS 云数据库"
+        data: {description: "关系型数据库服务"}
+        severity: info
+        source: https://www.aliyun.com/product/rds
+      - type: product_detected
+        title: "产品: SLB 负载均衡"
+        data: {description: "流量分发服务"}
+        severity: info
+        source: https://www.aliyun.com/product/slb
+      - type: product_detected
+        title: "产品: 通义千问大模型"
+        data: {description: "阿里云大语言模型平台"}
+        severity: info
+        source: https://www.aliyun.com/product/bailian
+    metrics:
+      innovation_velocity: 8.5
+      price_index: 75.0
+      feature_count: 50
+      security_mentions: 12
+      stability_index: 9.0
+      market_alignment: 8.5
+    source_name: seed
+    source_chain_trace: []
+
+  - version: 2
+    name: 腾讯云
+    url: https://cloud.tencent.com
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: CVM 云服务器"
+        data: {description: "安全稳定弹性扩展的云端计算服务"}
+        severity: info
+        source: https://cloud.tencent.com/product/cvm
+      - type: product_detected
+        title: "产品: COS 对象存储"
+        data: {description: "海量文件存储服务"}
+        severity: info
+        source: https://cloud.tencent.com/product/cos
+      - type: product_detected
+        title: "产品: TDSQL 数据库"
+        data: {description: "分布式数据库"}
+        severity: info
+        source: https://cloud.tencent.com/product/tdsql
+      - type: product_detected
+        title: "产品: 混元大模型"
+        data: {description: "腾讯自研大语言模型"}
+        severity: info
+        source: https://cloud.tencent.com/product/hunyuan
+    metrics:
+      innovation_velocity: 8.0
+      price_index: 70.0
+      feature_count: 45
+      security_mentions: 10
+      stability_index: 8.5
+      market_alignment: 8.0
+    source_name: seed
+    source_chain_trace: []
+
+  - version: 2
+    name: 华为云
+    url: https://www.huaweicloud.com
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: ECS 弹性云服务器"
+        data: {description: "可随时自动获取、弹性伸缩的云服务器"}
+        severity: info
+        source: https://www.huaweicloud.com/product/ecs.html
+      - type: product_detected
+        title: "产品: OBS 对象存储服务"
+        data: {description: "海量、安全、低成本的云存储服务"}
+        severity: info
+        source: https://www.huaweicloud.com/product/obs.html
+      - type: product_detected
+        title: "产品: 盘古大模型"
+        data: {description: "华为AI大模型平台"}
+        severity: info
+        source: https://www.huaweicloud.com/product/pangu.html
+    metrics:
+      innovation_velocity: 7.5
+      price_index: 65.0
+      feature_count: 40
+      security_mentions: 8
+      stability_index: 8.0
+      market_alignment: 7.5
+    source_name: seed
+    source_chain_trace: []
+
+  # === 二线云厂商 ===
+  - version: 2
+    name: 百度智能云
+    url: https://cloud.baidu.com
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: BCC 云服务器"
+        data: {description: "弹性计算服务"}
+        severity: info
+        source: https://cloud.baidu.com/product/bcc.html
+      - type: product_detected
+        title: "产品: BOS 对象存储"
+        data: {description: "海量数据存储服务"}
+        severity: info
+        source: https://cloud.baidu.com/product/bos.html
+      - type: product_detected
+        title: "产品: 文心大模型"
+        data: {description: "百度AI大模型平台"}
+        severity: info
+        source: https://cloud.baidu.com/product/wenxinworkshop.html
+    metrics:
+      innovation_velocity: 7.0
+      price_index: 60.0
+      feature_count: 35
+      security_mentions: 6
+      stability_index: 7.5
+      market_alignment: 7.0
+    source_name: seed
+    source_chain_trace: []
+
+  - version: 2
+    name: 京东云
+    url: https://www.jdcloud.com
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: 云主机"
+        data: {description: "弹性云服务器"}
+        severity: info
+        source: https://www.jdcloud.com/cn/products/vm
+      - type: product_detected
+        title: "产品: 对象存储"
+        data: {description: "海量数据存储服务"}
+        severity: info
+        source: https://www.jdcloud.com/cn/products/oss
+    metrics:
+      innovation_velocity: 5.5
+      price_index: 55.0
+      feature_count: 25
+      security_mentions: 4
+      stability_index: 7.0
+      market_alignment: 5.5
+    source_name: seed
+    source_chain_trace: []
+
+  - version: 2
+    name: 金山云
+    url: https://www.ksyun.com
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: KEI 云服务器"
+        data: {description: "弹性计算实例"}
+        severity: info
+        source: https://www.ksyun.com/products/kec
+      - type: product_detected
+        title: "产品: KS3 对象存储"
+        data: {description: "对象存储服务"}
+        severity: info
+        source: https://www.ksyun.com/products/ks3
+    metrics:
+      innovation_velocity: 5.0
+      price_index: 50.0
+      feature_count: 20
+      security_mentions: 3
+      stability_index: 6.5
+      market_alignment: 5.0
+    source_name: seed
+    source_chain_trace: []
+
+  - version: 2
+    name: UCloud
+    url: https://www.ucloud.cn
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: UHost 云主机"
+        data: {description: "弹性计算服务"}
+        severity: info
+        source: https://www.ucloud.cn/product/uhost
+      - type: product_detected
+        title: "产品: UFile 对象存储"
+        data: {description: "分布式文件存储"}
+        severity: info
+        source: https://www.ucloud.cn/product/ufile
+    metrics:
+      innovation_velocity: 4.5
+      price_index: 48.0
+      feature_count: 18
+      security_mentions: 3
+      stability_index: 6.0
+      market_alignment: 4.5
+    source_name: seed
+    source_chain_trace: []
+
+  - version: 2
+    name: 七牛云
+    url: https://www.qiniu.com
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: Kodo 对象存储"
+        data: {description: "海量存储系统"}
+        severity: info
+        source: https://www.qiniu.com/products/kodo
+      - type: product_detected
+        title: "产品: CDN 加速"
+        data: {description: "内容分发网络"}
+        severity: info
+        source: https://www.qiniu.com/products/cdn
+    metrics:
+      innovation_velocity: 4.0
+      price_index: 45.0
+      feature_count: 15
+      security_mentions: 2
+      stability_index: 6.0
+      market_alignment: 4.0
+    source_name: seed
+    source_chain_trace: []
+
+  # === 国际云中国区 ===
+  - version: 2
+    name: AWS中国
+    url: https://www.amazonaws.cn
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: EC2 云服务器"
+        data: {description: "弹性计算云"}
+        severity: info
+        source: https://www.amazonaws.cn/products/ec2
+      - type: product_detected
+        title: "产品: S3 对象存储"
+        data: {description: "简单存储服务"}
+        severity: info
+        source: https://www.amazonaws.cn/products/s3
+      - type: product_detected
+        title: "产品: Bedrock AI平台"
+        data: {description: "AWS大模型服务"}
+        severity: info
+        source: https://www.amazonaws.cn/products/bedrock
+    metrics:
+      innovation_velocity: 9.0
+      price_index: 80.0
+      feature_count: 60
+      security_mentions: 15
+      stability_index: 9.5
+      market_alignment: 9.0
+    source_name: seed
+    source_chain_trace: []
+
+  - version: 2
+    name: Azure中国
+    url: https://www.azure.cn
+    timestamp: "2026-04-22T00:00:00Z"
+    events:
+      - type: product_detected
+        title: "产品: 虚拟机"
+        data: {description: "Azure计算服务"}
+        severity: info
+        source: https://www.azure.cn/home/features/virtual-machines
+      - type: product_detected
+        title: "产品: Blob 存储"
+        data: {description: "Azure对象存储"}
+        severity: info
+        source: https://www.azure.cn/home/features/storage
+      - type: product_detected
+        title: "产品: Azure OpenAI"
+        data: {description: "Azure AI大模型服务"}
+        severity: info
+        source: https://www.azure.cn/products/ai-services
+    metrics:
+      innovation_velocity: 8.5
+      price_index: 78.0
+      feature_count: 55
+      security_mentions: 14
+      stability_index: 9.0
+      market_alignment: 8.5
+    source_name: seed
+    source_chain_trace: []

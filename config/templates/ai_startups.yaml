@@ -1,0 +1,112 @@
+# AI创业公司监控模板
+version: "2.0"
+template_name: "AI创业公司监控"
+description: "适用于OpenAI、Anthropic、Cohere等AI创业公司的监控配置"
+
+default_settings:
+  monitoring_frequency: "hourly"
+  priority: "high"
+  alert_level: "high"
+  report_format: "technical_analysis"
+  notification_channels: ["email", "slack", "sms"]
+
+monitoring_targets:
+  competitors:
+    - name: "OpenAI"
+      domains:
+        - "https://openai.com"
+        - "https://platform.openai.com"
+        - "https://openai.com/research"
+        - "https://openai.com/blog"
+        - "https://github.com/openai"
+      monitoring_frequency: "hourly"
+      priority: "critical"
+      scrape_patterns:
+        - "research_papers"
+        - "api_updates"
+        - "model_releases"
+        - "pricing_changes"
+        - "product_announcements"
+        - "documentation_updates"
+
+    - name: "Anthropic"
+      domains:
+        - "https://www.anthropic.com"
+        - "https://console.anthropic.com"
+        - "https://www.anthropic.com/research"
+      monitoring_frequency: "hourly"
+      priority: "critical"
+      scrape_patterns:
+        - "research_breakthroughs"
+        - "product_launches"
+        - "api_changes"
+        - "safety_updates"
+
+    - name: "Cohere"
+      domains:
+        - "https://cohere.com"
+        - "https://dashboard.cohere.com"
+        - "https://docs.cohere.com"
+      monitoring_frequency: "hourly"
+      priority: "high"
+      scrape_patterns:
+        - "model_updates"
+        - "api_improvements"
+        - "enterprise_features"
+        - "partnerships"
+
+  research_platforms:
+    sources:
+      - "https://arxiv.org/list/cs.AI/recent"
+      - "https://paperswithcode.com/sota"
+      - "https://huggingface.co/papers"
+    frequency: "daily"
+    categories:
+      - "language_models"
+      - "multimodal_ai"
+      - "reinforcement_learning"
+      - "ai_safety"
+
+  funding_sources:
+    sources:
+      - "https://techcrunch.com/tag/artificial-intelligence/"
+      - "https://venturebeat.com/ai/"
+      - "https://www.crunchbase.com"
+    frequency: "daily"
+    categories:
+      - "funding_rounds"
+      - "investor_updates"
+      - "valuation_changes"
+
+strategy_rules:
+  monitoring_intensity: "high"
+  focus_areas:
+    - "technical_breakthroughs"
+    - "product_announcements"
+    - "pricing_strategy"
+    - "research_publications"
+  alert_triggers:
+    - "new_model_release"
+    - "major_api_change"
+    - "significant_funding"
+    - "key_personnel_change"
+
+analysis_dimensions:
+  research_velocity: true
+  product_roadmap: true
+  market_positioning: true
+  technical_capabilities: true
+
+output_formats:
+  - "research_tracker"
+  - "product_comparison"
+  - "market_analysis"
+  - "technical_insights"
+
+notes: |
+  AI创业公司监控特点：
+  1. 极高频率监控（小时级）
+  2. 关注研究论文和技术突破
+  3. 跟踪API和模型更新
+  4. 分析融资和估值变化
+  5. 关键技术人才流动

@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "mcp_servers": {
+    "web_scraper": {
+      "command": "python",
+      "args": ["-m", "mcp.cli", "run", "web_scraper"],
+      "env": {
+        "DRY_RUN": "0",
+        "MAX_CONCURRENT_REQUESTS": "15",
+        "REQUEST_TIMEOUT": "30"
+      }
+    },
+    "analytics_dashboard": {
+      "command": "python",
+      "args": ["-m", "mcp.cli", "run", "analytics_dashboard"],
+      "env": {
+        "DRY_RUN": "0",
+        "DATA_RETENTION_DAYS": "90",
+        "CACHE_ENABLED": "true"
+      }
+    },
+    "notification_mcp": {
+      "command": "python",
+      "args": ["-m", "mcp.cli", "run", "notification_mcp"],
+      "env": {
+        "DRY_RUN": "0",
+        "NOTIFICATION_CHANNELS": "slack,email",
+        "ALERT_THRESHOLD": "0.8"
+      }
+    }
+  },
+  "features": {
+    "dry_run": false,
+    "mock_enabled": false,
+    "sandbox_isolation": true,
+    "retry_policy": {
+      "max_retries": 3,
+      "backoff_factor": 2,
+      "retry_on": ["timeout", "rate_limit", "server_error"]
+    }
+  },
+  "health_check": {
+    "interval_seconds": 300,
+    "timeout_seconds": 10,
+    "fail_threshold": 3
+  }
+}

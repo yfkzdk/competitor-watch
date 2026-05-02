@@ -1,0 +1,238 @@
+/*
+  移动端适配样式
+  任务：task-015 - Week 10: 移动端适配和性能优化
+*/
+
+/* 响应式布局 */
+@media screen and (max-width: 768px) {
+  /* 全局布局调整 */
+  .dashboard-container {
+    padding: 10px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .dashboard-header h2 {
+    font-size: 20px;
+  }
+
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* 网格布局调整 */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .widget-large,
+  .widget-medium {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+
+  /* 筛选面板调整 */
+  .filter-panel {
+    padding: 15px;
+  }
+
+  .filter-group {
+    margin-bottom: 15px;
+  }
+
+  .date-range-picker {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .quick-select {
+    flex-wrap: wrap;
+  }
+
+  .checkbox-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* 报告中心调整 */
+  .report-filters {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .report-item {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .report-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .report-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .report-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 设置页面调整 */
+  .settings-content {
+    padding: 20px;
+  }
+
+  .form-input,
+  .form-select {
+    max-width: 100%;
+  }
+
+  /* 按钮调整 */
+  .btn-add,
+  .btn-save,
+  .btn-reset,
+  .btn-generate {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  /* 图表容器调整 */
+  .chart-container {
+    height: 300px;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .chart-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* 对话框调整 */
+  .dialog {
+    width: 95%;
+    margin: 10px;
+  }
+
+  .dialog-body {
+    padding: 15px;
+  }
+
+  /* 统计卡片调整 */
+  .stat-item {
+    padding: 10px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+}
+
+/* 小屏幕手机适配 */
+@media screen and (max-width: 480px) {
+  .dashboard-header h2 {
+    font-size: 18px;
+  }
+
+  .widget-header h3 {
+    font-size: 14px;
+  }
+
+  .report-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  .chart-container {
+    height: 250px;
+  }
+
+  .btn-add,
+  .btn-save,
+  .btn-reset,
+  .btn-generate {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* 平板适配 */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .widget-large {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .widget-medium {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+}
+
+/* 性能优化 - 减少重绘和回流 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .btn-add,
+  .btn-save,
+  .btn-generate {
+    border: 2px solid #000;
+  }
+
+  .status-badge {
+    border: 1px solid #000;
+  }
+}
+
+/* 打印样式优化 */
+@media print {
+  .btn-add,
+  .btn-save,
+  .btn-reset,
+  .btn-generate,
+  .btn-edit,
+  .btn-remove,
+  .btn-delete,
+  .btn-view,
+  .btn-download {
+    display: none;
+  }
+
+  .dashboard-header,
+  .report-header,
+  .settings-header {
+    page-break-after: avoid;
+  }
+
+  .widget,
+  .report-item {
+    page-break-inside: avoid;
+  }
+}

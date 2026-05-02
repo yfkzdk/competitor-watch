@@ -1,0 +1,65 @@
+{
+  "monitoring": {
+    "default_frequency": 5,
+    "timeout": 30,
+    "retry_times": 3,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  },
+  "data_sources": {
+    "bilibili": {
+      "enabled": true,
+      "api_base": "https://api.bilibili.com",
+      "rate_limit": 300
+    },
+    "weibo": {
+      "enabled": true,
+      "api_base": "https://weibo.com/ajax",
+      "rate_limit": 150
+    },
+    "zhihu": {
+      "enabled": true,
+      "api_base": "https://www.zhihu.com/api/v3",
+      "rate_limit": 200
+    },
+    "36kr": {
+      "enabled": true,
+      "api_base": "https://36kr.com",
+      "rate_limit": 100
+    },
+    "infoq": {
+      "enabled": true,
+      "api_base": "https://www.infoq.cn",
+      "rate_limit": 100
+    },
+    "juejin": {
+      "enabled": true,
+      "api_base": "https://juejin.cn",
+      "rate_limit": 100
+    },
+    "oschina": {
+      "enabled": true,
+      "api_base": "https://www.oschina.net",
+      "rate_limit": 100
+    }
+  },
+  "storage": {
+    "compression": "brotli",
+    "retention_days": 90,
+    "snapshot_max_length": null
+  },
+  "notifications": {
+    "enabled": false,
+    "channels": [],
+    "webhook_url": "",
+    "on_events": [
+      "change_detected",
+      "error",
+      "threshold_exceeded"
+    ]
+  },
+  "application": {
+    "base_url": "",
+    "password": false,
+    "pager_size": 50
+  }
+}

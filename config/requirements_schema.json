@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Strategy Requirements Schema",
+  "description": "Schema for validating strategy requirements",
+  "type": "object",
+  "required": ["competitor_list", "strategy_type", "parameters", "constraints"],
+  "properties": {
+    "competitor_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "domains", "priority"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "minItems": 1
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["high", "medium", "low", "critical"]
+          },
+          "monitoring_frequency": {
+            "type": "string",
+            "enum": ["hourly", "twice_daily", "daily", "weekly", "monthly", "event_driven"]
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "strategy_type": {
+      "type": "string",
+      "enum": ["high_frequency_snapshot", "low_frequency_deep_parse", "critical_event_driven", "custom"]
+    },
+    "parameters": {
+      "type": "object",
+      "required": ["storage_cost_weight", "freshness_weight", "noise_reduction_rate"],
+      "properties": {
+        "storage_cost_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "freshness_weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "noise_reduction_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["realtime", "hourly", "daily", "weekly", "monthly", "event_driven"]
+        },
+        "depth_level": {
+          "type": "string",
+          "enum": ["surface", "medium", "deep", "comprehensive"]
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "max_storage_gb": {
+          "type": "number",
+          "minimum": 0.1
+        },
+        "max_daily_requests": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "response_time_ms": {
+          "type": "integer",
+          "minimum": 100
+        },
+        "budget_usd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "enforce_schema": {
+          "type": "boolean",
+          "default": true
+        },
+        "dry_run": {
+          "type": "boolean",
+          "default": true
+        },
+        "fallback_strategy": {
+          "type": "string",
+          "enum": ["high_frequency_snapshot", "low_frequency_deep_parse", "critical_event_driven"]
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

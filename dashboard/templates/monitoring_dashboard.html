@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博监控 // 监控仪表板</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        :root {
+            --bg-void: #0a0a0f;
+            --bg-panel: #0d0d18;
+            --bg-panel-alt: #111122;
+            --border-dim: #1a1a3e;
+            --border-glow: #00fff0;
+            --neon-cyan: #00fff0;
+            --neon-magenta: #ff2a6d;
+            --neon-amber: #f0e000;
+            --neon-green: #05ffa1;
+            --neon-purple: #b537f2;
+            --text-primary: #e0e0ff;
+            --text-dim: #6a6a8e;
+            --text-data: #00fff0;
+            --p0-color: #ff2a6d;
+            --p1-color: #f0e000;
+            --p2-color: #00fff0;
+            --p3-color: #b537f2;
+            --font-display: 'Rajdhani', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --glow-cyan: 0 0 10px rgba(0,255,240,.4), 0 0 40px rgba(0,255,240,.15);
+            --glow-magenta: 0 0 10px rgba(255,42,109,.4), 0 0 40px rgba(255,42,109,.15);
+            --glow-amber: 0 0 10px rgba(240,224,0,.4), 0 0 40px rgba(240,224,0,.15);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-display);
+            background: var(--bg-void);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== CRT SCANLINES ===== */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,.08) 2px,
+                rgba(0,0,0,.08) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ===== GLITCH BAR (signature detail) ===== */
+        @keyframes glitch-bar {
+            0%, 90%, 100% { opacity: 0; transform: translateY(0); }
+            92% { opacity: 1; transform: translateY(-2px); height: 3px; }
+            94% { opacity: 1; transform: translateY(1px); height: 1px; }
+            96% { opacity: 0; }
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            left: 0; right: 0;
+            top: 30%;
+            height: 2px;
+            background: var(--neon-cyan);
+            opacity: 0;
+            z-index: 9998;
+            animation: glitch-bar 8s infinite;
+            pointer-events: none;
+        }
+
+        /* ===== TOP BAR ===== */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: linear-gradient(180deg, rgba(0,255,240,.06) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-dim);
+            position: relative;
+        }
+        .topbar::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), transparent);
+            opacity: .6;
+        }
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .topbar-brand h1 {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--neon-cyan);
+            text-shadow: var(--glow-cyan);
+        }
+        .topbar-brand .version {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            border: 1px solid var(--border-dim);
+            padding: 2px 8px;
+            border-radius: 2px;
+        }
+        .ws-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .ws-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--p0-color);
+            box-shadow: 0 0 6px var(--p0-color);
+            transition: all .3s;
+        }
+        .ws-dot.connected {
+            background: var(--neon-green);
+            box-shadow: 0 0 6px var(--neon-green);
+        }
+        .topbar-time {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        /* ===== MAIN GRID ===== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 16px;
+            padding: 20px 24px 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ===== STAT CARDS ROW ===== */
+        .stats-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .stat-card {
+            position: relative;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            padding: 20px 22px;
+            overflow: hidden;
+            transition: border-color .3s, box-shadow .3s;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: var(--card-accent, var(--neon-cyan));
+        }
+        .stat-card:hover {
+            border-color: var(--card-accent, var(--border-glow));
+            box-shadow: 0 0 20px rgba(0,255,240,.08);
+        }
+        .stat-card .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .stat-card .stat-value {
+            font-family: var(--font-mono);
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--card-accent, var(--text-data));
+            text-shadow: 0 0 15px rgba(0,255,240,.3);
+            line-height: 1;
+        }
+        .stat-card .stat-sub {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 6px;
+        }
+
+        /* ===== PANEL (shared) ===== */
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            overflow: hidden;
+            position: relative;
+        }
+        .panel:hover {
+            border-color: rgba(0,255,240,.25);
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-dim);
+            background: linear-gradient(180deg, rgba(0,255,240,.04) 0%, transparent 100%);
+        }
+        .panel-title {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--neon-cyan);
+        }
+        .panel-badge {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 2px 10px;
+            border: 1px solid;
+            border-radius: 2px;
+        }
+        .panel-body {
+            padding: 16px 18px;
+        }
+
+        /* ===== ALERT LIST ===== */
+        .alert-list {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+        .alert-list::-webkit-scrollbar { width: 4px; }
+        .alert-list::-webkit-scrollbar-track { background: var(--bg-void); }
+        .alert-list::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 2px; }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(26,26,62,.6);
+            animation: alert-slide-in .4s ease-out;
+        }
+        .alert-item:last-child { border-bottom: none; }
+
+        @keyframes alert-slide-in {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .alert-severity {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            border: 1px solid;
+        }
+        .alert-severity.p0 { color: var(--p0-color); border-color: var(--p0-color); text-shadow: 0 0 8px rgba(255,42,109,.5); }
+        .alert-severity.p1 { color: var(--p1-color); border-color: var(--p1-color); }
+        .alert-severity.p2 { color: var(--p2-color); border-color: var(--p2-color); }
+        .alert-severity.p3 { color: var(--p3-color); border-color: var(--p3-color); }
+
+        .alert-content { flex: 1; min-width: 0; }
+        .alert-type {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .alert-msg {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .alert-time {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .btn-ack {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 4px 12px;
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all .2s;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+        .btn-ack:hover {
+            background: rgba(0,255,240,.12);
+            box-shadow: 0 0 12px rgba(0,255,240,.3);
+        }
+        .btn-ack:disabled {
+            color: var(--text-dim);
+            border-color: var(--border-dim);
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+
+        /* ===== JOB CARDS ===== */
+        .job-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .job-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: var(--bg-panel-alt);
+            border: 1px solid var(--border-dim);
+            transition: border-color .2s;
+        }
+        .job-card:hover { border-color: rgba(0,255,240,.2); }
+        .job-card .job-id {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--neon-cyan);
+        }
+        .job-card .job-meta {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        .job-status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--neon-green);
+            box-shadow: 0 0 6px var(--neon-green);
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn-stop {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 4px 12px;
+            background: transparent;
+            color: var(--neon-magenta);
+            border: 1px solid var(--neon-magenta);
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all .2s;
+        }
+        .btn-stop:hover {
+            background: rgba(255,42,109,.12);
+            box-shadow: 0 0 12px rgba(255,42,109,.3);
+        }
+
+        .btn-create {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 8px 18px;
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all .2s;
+            width: 100%;
+            margin-top: 12px;
+        }
+        .btn-create:hover {
+            background: rgba(0,255,240,.1);
+            box-shadow: 0 0 15px rgba(0,255,240,.25);
+        }
+
+        /* ===== CHART AREA ===== */
+        .chart-wrap {
+            position: relative;
+            height: 260px;
+        }
+        .chart-wrap canvas { max-height: 260px; }
+
+        /* ===== DIFF TIMELINE ===== */
+        .diff-timeline {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 8px 0;
+            min-height: 60px;
+            align-items: flex-end;
+        }
+        .diff-timeline::-webkit-scrollbar { height: 4px; }
+        .diff-timeline::-webkit-scrollbar-track { background: var(--bg-void); }
+        .diff-timeline::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 2px; }
+        .diff-entry {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 48px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            cursor: pointer;
+            transition: transform .2s;
+        }
+        .diff-entry:hover { transform: scale(1.1); }
+        .diff-bar {
+            width: 12px;
+            border-radius: 2px 2px 0 0;
+            transition: height .3s;
+        }
+        .diff-bar.no-change { background: var(--border-dim); }
+        .diff-bar.has-change { background: var(--neon-magenta); box-shadow: 0 0 8px rgba(255,42,109,.4); }
+        .diff-time { color: var(--text-dim); margin-top: 4px; white-space: nowrap; }
+        .diff-count { color: var(--neon-cyan); margin-bottom: 2px; }
+        .diff-detail {
+            display: none;
+            position: absolute;
+            background: var(--bg-panel);
+            border: 1px solid var(--neon-cyan);
+            padding: 8px 12px;
+            font-size: 11px;
+            z-index: 100;
+            min-width: 200px;
+            box-shadow: 0 0 20px rgba(0,255,240,.15);
+        }
+        .diff-entry:hover .diff-detail { display: block; }
+        .diff-field { color: var(--neon-amber); }
+        .diff-old { color: var(--p0-color); text-decoration: line-through; }
+        .diff-new { color: var(--neon-green); }
+
+        /* ===== WEBSOCKET LOG ===== */
+        .ws-log {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--bg-void);
+            padding: 12px;
+            border: 1px solid var(--border-dim);
+        }
+        .ws-log::-webkit-scrollbar { width: 4px; }
+        .ws-log::-webkit-scrollbar-track { background: var(--bg-void); }
+        .ws-log::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 2px; }
+        .ws-log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(26,26,62,.4);
+            animation: log-fade-in .3s ease-out;
+        }
+        @keyframes log-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .ws-log-entry .log-time { color: var(--text-dim); }
+        .ws-log-entry .log-type { color: var(--neon-cyan); }
+        .ws-log-entry .log-data { color: var(--text-dim); }
+
+        /* ===== MODAL (Create Job) ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--neon-cyan);
+            padding: 28px;
+            width: 380px;
+            box-shadow: 0 0 40px rgba(0,255,240,.15);
+            position: relative;
+        }
+        .modal-box::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            z-index: -1;
+            opacity: .3;
+            filter: blur(1px);
+        }
+        .modal-title {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: var(--neon-cyan);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-void);
+            border: 1px solid var(--border-dim);
+            color: var(--text-data);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .form-input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 8px rgba(0,255,240,.15); }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .modal-actions button { flex: 1; }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 10px 18px;
+            background: var(--bg-panel);
+            border: 1px solid var(--neon-cyan);
+            color: var(--text-primary);
+            box-shadow: 0 0 20px rgba(0,255,240,.15);
+            animation: toast-in .3s ease-out;
+        }
+        .toast.error { border-color: var(--neon-magenta); box-shadow: 0 0 20px rgba(255,42,109,.15); }
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toast-out {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+
+        /* ===== DATA PULSE ANIMATION ===== */
+        @keyframes data-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .pulse { animation: data-pulse 1.5s ease-in-out; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .topbar { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+            .dashboard-grid { padding: 12px 16px; }
+            .stat-card .stat-value { font-size: 28px; }
+        }
+
+        /* ===== REDUCED MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+            body::before, body::after { display: none; }
+        }
+
+        /* ===== REFRESH SPINNER ===== */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 1s linear infinite; display: inline-block; }
+
+        /* ===== NAV LINKS ===== */
+        .topbar-nav { display: flex; gap: 16px; align-items: center; }
+        .topbar-nav a {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            text-decoration: none;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: color .2s;
+        }
+        .topbar-nav a:hover { color: var(--neon-cyan); text-shadow: 0 0 8px rgba(0,255,240,.4); }
+    </style>
+</head>
+<body class="cyber-dashboard">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <h1>赛博监控</h1>
+            <span class="version">v2.0</span>
+        </div>
+        <nav class="topbar-nav">
+            <a href="/">首页</a>
+            <a href="/docs">接口文档</a>
+            <a href="/product/v2?competitor_id=1">产品详情</a>
+            <a href="/websocket-test">WS测试</a>
+        </nav>
+        <div style="display:flex;align-items:center;gap:20px;">
+            <div class="ws-indicator">
+                <div class="ws-dot" id="wsDot"></div>
+                <span id="wsStatus">未连接</span>
+            </div>
+            <div class="topbar-time" id="clock">--:--:--</div>
+        </div>
+    </header>
+
+    <!-- MAIN GRID -->
+    <main class="dashboard-grid">
+
+        <!-- STAT CARDS -->
+        <section class="stats-row">
+            <div class="stat-card" style="--card-accent:var(--neon-cyan)">
+                <div class="stat-label">运行中监控</div>
+                <div class="stat-value" id="statActiveJobs">--</div>
+                <div class="stat-sub" id="statActiveSub">调度任务运行中</div>
+            </div>
+            <div class="stat-card" style="--card-accent:var(--neon-magenta)">
+                <div class="stat-label">待处理告警</div>
+                <div class="stat-value" id="statPending">--</div>
+                <div class="stat-sub">等待确认处理</div>
+            </div>
+            <div class="stat-card" style="--card-accent:var(--neon-amber)">
+                <div class="stat-label">24小时告警</div>
+                <div class="stat-value" id="statToday">--</div>
+                <div class="stat-sub" id="statTodaySub">近24小时总计</div>
+            </div>
+            <div class="stat-card" style="--card-accent:var(--neon-green)">
+                <div class="stat-label">WS连接数</div>
+                <div class="stat-value" id="statWs">--</div>
+                <div class="stat-sub">实时推送连接</div>
+            </div>
+        </section>
+
+        <!-- PENDING ALERTS PANEL -->
+        <section class="panel" style="grid-column:1">
+            <div class="panel-header">
+                <span class="panel-title">// 待处理告警</span>
+                <span class="panel-badge" style="color:var(--neon-magenta);border-color:var(--neon-magenta)" id="alertCount">0</span>
+            </div>
+            <div class="panel-body">
+                <div class="alert-list" id="alertList">
+                    <div class="empty-state">暂无待处理告警</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCHEDULER JOBS PANEL -->
+        <section class="panel" style="grid-column:2">
+            <div class="panel-header">
+                <span class="panel-title">// 调度任务</span>
+                <span class="panel-badge" style="color:var(--neon-cyan);border-color:var(--neon-cyan)" id="jobCount">0</span>
+            </div>
+            <div class="panel-body">
+                <div class="job-grid" id="jobList">
+                    <div class="empty-state">暂无调度任务</div>
+                </div>
+                <button class="btn-create" onclick="openCreateJobModal()">+ 创建监控任务</button>
+            </div>
+        </section>
+
+        <!-- ALERT TREND CHART -->
+        <section class="panel" style="grid-column:1">
+            <div class="panel-header">
+                <span class="panel-title">// 告警分布</span>
+                <span class="panel-badge" style="color:var(--neon-amber);border-color:var(--neon-amber)">24H</span>
+            </div>
+            <div class="panel-body">
+                <div class="chart-wrap">
+                    <canvas id="alertChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ANALYTICS: TREND + ANOMALY CHART -->
+        <section class="panel" style="grid-column:2" id="analyticsPanel">
+            <div class="panel-header">
+                <span class="panel-title">// 价格趋势 & 异常</span>
+                <select id="analyticsCompetitor" style="background:var(--bg-void);border:1px solid var(--border-dim);color:var(--text-data);font-family:var(--font-mono);font-size:11px;padding:2px 8px;outline:none;">
+                    <option value="1">竞品 #1</option>
+                    <option value="2">竞品 #2</option>
+                    <option value="3">竞品 #3</option>
+                </select>
+            </div>
+            <div class="panel-body">
+                <div class="chart-wrap">
+                    <canvas id="analytics-chart" class="analytics-chart"></canvas>
+                </div>
+                <div id="trendInfo" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:8px;"></div>
+            </div>
+        </section>
+
+        <!-- DIFF TIMELINE -->
+        <section class="panel" style="grid-column:1/-1" id="diffPanel">
+            <div class="panel-header">
+                <span class="panel-title">// 变化时间线 (DIFF)</span>
+                <select id="diffCompetitor" style="background:var(--bg-void);border:1px solid var(--border-dim);color:var(--text-data);font-family:var(--font-mono);font-size:11px;padding:2px 8px;outline:none;">
+                    <option value="1">竞品 #1</option>
+                    <option value="2">竞品 #2</option>
+                    <option value="3">竞品 #3</option>
+                </select>
+            </div>
+            <div class="panel-body">
+                <div id="diffTimeline" class="diff-timeline"></div>
+            </div>
+        </section>
+
+        <!-- REALTIME WEBSOCKET FEED -->
+        <section class="panel" style="grid-column:2">
+            <div class="panel-header">
+                <span class="panel-title">// 实时动态</span>
+                <span class="panel-badge" style="color:var(--neon-green);border-color:var(--neon-green)" id="feedStatus">实时</span>
+            </div>
+            <div class="panel-body" style="padding:0">
+                <div class="ws-log" id="wsLog">
+                    <div class="ws-log-entry">
+                        <span class="log-time">[--:--:--]</span>
+                        <span class="log-type"> SYS </span>
+                        <span class="log-data">等待连接...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CREATE JOB MODAL -->
+    <div class="modal-overlay" id="createJobModal">
+        <div class="modal-box">
+            <div class="modal-title">// 创建监控任务</div>
+            <div class="form-group">
+                <label class="form-label">竞品ID</label>
+                <input class="form-input" type="number" id="jobCompetitorId" value="1" min="1">
+            </div>
+            <div class="form-group">
+                <label class="form-label">监控频率（分钟）</label>
+                <input class="form-input" type="number" id="jobFrequency" value="60" min="5">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-ack" onclick="closeCreateJobModal()">取消</button>
+                <button class="btn-create" style="margin:0" onclick="createJob()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        /* ================================================
+           CYBERWATCH // Monitoring Dashboard — Full Logic
+           ================================================ */
+
+        const API = {
+            alertStats:    '/api/alerts/stats?hours=24',
+            pendingAlerts: '/api/alerts/pending',
+            ackAlert:      (id) => `/api/alerts/${id}/acknowledge`,
+            schedulerJobs: '/api/scheduler/jobs',
+            createJob:     '/api/scheduler/jobs',
+            deleteJob:     (cid) => `/api/scheduler/jobs/${cid}`,
+            monitoringStats: '/api/monitoring/stats',
+            wsStats:       '/ws/stats',
+            wsEndpoint:    `ws://${location.host}/ws/monitoring`
+        };
+
+        let ws = null;
+        let alertChart = null;
+        let refreshTimer = null;
+
+        // ===== CLOCK =====
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent =
+                now.toTimeString().split(' ')[0];
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ===== TOAST =====
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            el.className = `toast ${type === 'error' ? 'error' : ''}`;
+            el.textContent = msg;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.animation = 'toast-out .3s forwards';
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
+        }
+
+        // ===== LOAD ALERT STATS =====
+        async function loadAlertStats() {
+            try {
+                const res = await fetch(API.alertStats);
+                const json = await res.json();
+                if (json.success && json.data) {
+                    const d = json.data;
+                    document.getElementById('statToday').textContent = d.total ?? 0;
+                    document.getElementById('statTodaySub').textContent =
+                    document.getElementById('statTodaySub').textContent =
+                        `${Object.keys(d.by_severity ?? {}).length} 个严重等级 / 24小时`;
+                }
+            } catch (e) {
+                console.error('Alert stats error:', e);
+            }
+        }
+
+        // ===== LOAD PENDING ALERTS =====
+        async function loadPendingAlerts() {
+            try {
+                const res = await fetch(API.pendingAlerts);
+                const json = await res.json();
+                const list = document.getElementById('alertList');
+                const countEl = document.getElementById('alertCount');
+
+                if (json.success && json.data && json.data.length > 0) {
+                    const alerts = json.data;
+                    countEl.textContent = alerts.length;
+                    document.getElementById('statPending').textContent = alerts.length;
+
+                    list.innerHTML = alerts.map(a => `
+                        <div class="alert-item" data-id="${a.id}">
+                            <div style="display:flex;align-items:flex-start;flex:1;min-width:0">
+                                <span class="alert-severity ${(a.severity || 'p2').toLowerCase()}">${a.severity || 'P2'}</span>
+                                <div class="alert-content">
+                                    <div class="alert-type">${escHtml(a.alert_type || 'unknown')}</div>
+                                    <div class="alert-msg">${escHtml(a.message || '-')}</div>
+                                    <div class="alert-time">${formatTime(a.created_at)}</div>
+                                </div>
+                            </div>
+                            <button class="btn-ack" onclick="acknowledgeAlert(${a.id})">确认</button>
+                        </div>
+                    `).join('');
+                } else {
+                    countEl.textContent = '0';
+                    document.getElementById('statPending').textContent = '0';
+                    list.innerHTML = '<div class="empty-state">NO PENDING ALERTS</div>';
+                }
+            } catch (e) {
+                console.error('Pending alerts error:', e);
+            }
+        }
+
+        // ===== ACKNOWLEDGE ALERT =====
+        async function acknowledgeAlert(id) {
+            try {
+                const res = await fetch(API.ackAlert(id), { method: 'POST' });
+                if (res.ok) {
+                    showToast(`告警 #${id} 已确认`);
+                    // Animate out
+                    const el = document.querySelector(`.alert-item[data-id="${id}"]`);
+                    if (el) {
+                        el.style.opacity = '0';
+                        el.style.transform = 'translateX(20px)';
+                        el.style.transition = 'all .3s';
+                        setTimeout(() => loadPendingAlerts(), 300);
+                    } else {
+                        loadPendingAlerts();
+                    }
+                } else {
+                    showToast('确认失败', 'error');
+                }
+            } catch (e) {
+                showToast('确认错误: ' + e.message, 'error');
+            }
+        }
+
+        // ===== LOAD JOBS =====
+        async function loadJobs() {
+            try {
+                const res = await fetch(API.schedulerJobs);
+                const json = await res.json();
+                const list = document.getElementById('jobList');
+                const countEl = document.getElementById('jobCount');
+
+                if (json.success && json.data) {
+                    const jobs = json.data;
+                    const keys = Object.keys(jobs);
+                    countEl.textContent = keys.length;
+                    document.getElementById('statActiveJobs').textContent = keys.length;
+
+                    if (keys.length > 0) {
+                        list.innerHTML = keys.map(k => {
+                            const j = jobs[k];
+                            return `
+                                <div class="job-card">
+                                    <div style="display:flex;align-items:center;flex:1">
+                                        <div class="job-status-dot"></div>
+                                        <div>
+                                            <div class="job-id">竞品 #${j.competitor_id ?? k}</div>
+                                            <div class="job-meta">频率: ${j.frequency ?? '?'}分钟 | 下次: ${formatTime(j.next_run)}</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn-stop" onclick="removeJob(${j.competitor_id ?? k})">停止</button>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        list.innerHTML = '<div class="empty-state">NO SCHEDULED JOBS</div>';
+                    }
+                }
+            } catch (e) {
+                console.error('Jobs error:', e);
+            }
+        }
+
+        // ===== CREATE JOB =====
+        function openCreateJobModal() {
+            document.getElementById('createJobModal').classList.add('active');
+        }
+        function closeCreateJobModal() {
+            document.getElementById('createJobModal').classList.remove('active');
+        }
+        async function createJob() {
+            const cid = document.getElementById('jobCompetitorId').value;
+            const freq = document.getElementById('jobFrequency').value;
+            try {
+                const res = await fetch(`${API.createJob}?competitor_id=${cid}&frequency=${freq}`, { method: 'POST' });
+                const json = await res.json();
+                if (json.success) {
+                    showToast(`已为竞品 #${cid} 创建监控任务`);
+                    closeCreateJobModal();
+                    loadJobs();
+                } else {
+                    showToast('创建失败', 'error');
+                }
+            } catch (e) {
+                showToast('创建错误: ' + e.message, 'error');
+            }
+        }
+
+        // ===== REMOVE JOB =====
+        async function removeJob(competitorId) {
+            try {
+                const res = await fetch(API.deleteJob(competitorId), { method: 'DELETE' });
+                if (res.ok) {
+                    showToast(`竞品 #${competitorId} 监控已停止`);
+                    loadJobs();
+                }
+            } catch (e) {
+                showToast('停止错误: ' + e.message, 'error');
+            }
+        }
+
+        // ===== LOAD MONITORING STATS =====
+        async function loadMonitoringStats() {
+            try {
+                const res = await fetch(API.monitoringStats);
+                const json = await res.json();
+                if (json.success && json.data) {
+                    const d = json.data;
+                    document.getElementById('statActiveSub').textContent =
+                        `${d.total_snapshots ?? 0} 快照 | ${d.total_alerts ?? 0} 告警`;
+                }
+            } catch (e) {
+                console.error('Monitoring stats error:', e);
+            }
+        }
+
+        // ===== LOAD WS STATS =====
+        async function loadWsStats() {
+            try {
+                const res = await fetch(API.wsStats);
+                const json = await res.json();
+                if (json.success && json.data) {
+                    document.getElementById('statWs').textContent =
+                        json.data.total_connections ?? 0;
+                }
+            } catch (e) {
+                console.error('WS stats error:', e);
+            }
+        }
+
+        // ===== ALERT CHART =====
+        function initChart() {
+            const ctx = document.getElementById('alertChart').getContext('2d');
+            alertChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['P0', 'P1', 'P2', 'P3'],
+                    datasets: [{
+                        label: '告警数',
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(255,42,109,0.7)',
+                            'rgba(240,224,0,0.7)',
+                            'rgba(0,255,240,0.7)',
+                            'rgba(181,55,242,0.7)'
+                        ],
+                        borderColor: [
+                            '#ff2a6d',
+                            '#f0e000',
+                            '#00fff0',
+                            '#b537f2'
+                        ],
+                        borderWidth: 1,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0d0d18',
+                            borderColor: '#00fff0',
+                            borderWidth: 1,
+                            titleFont: { family: 'JetBrains Mono', size: 12 },
+                            bodyFont: { family: 'JetBrains Mono', size: 11 },
+                            titleColor: '#00fff0',
+                            bodyColor: '#e0e0ff'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(26,26,62,0.6)' },
+                            ticks: {
+                                color: '#6a6a8e',
+                                font: { family: 'JetBrains Mono', size: 11 }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#6a6a8e',
+                                font: { family: 'JetBrains Mono', size: 12, weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function updateChart() {
+            try {
+                const res = await fetch(API.alertStats);
+                const json = await res.json();
+                if (json.success && json.data) {
+                    const d = json.data;
+                    const severityMap = { P0: 0, P1: 1, P2: 2, P3: 3 };
+                    const counts = [0, 0, 0, 0];
+                    if (d.by_severity) {
+                        if (Array.isArray(d.by_severity)) {
+                            d.by_severity.forEach(s => {
+                                const idx = severityMap[s.severity];
+                                if (idx !== undefined) counts[idx] = s.count;
+                            });
+                        } else {
+                            // Object format: {"P0": 0, "P1": 1, ...}
+                            Object.entries(d.by_severity).forEach(([sev, cnt]) => {
+                                const idx = severityMap[sev];
+                                if (idx !== undefined) counts[idx] = cnt;
+                            });
+                        }
+                    }
+                    alertChart.data.datasets[0].data = counts;
+                    alertChart.update('none');
+                }
+            } catch (e) {
+                console.error('Chart update error:', e);
+            }
+        }
+
+        // ===== WEBSOCKET =====
+        function connectWebSocket() {
+            if (ws && ws.readyState <= 1) return;
+
+            ws = new WebSocket(API.wsEndpoint);
+
+            ws.onopen = () => {
+                document.getElementById('wsDot').classList.add('connected');
+                document.getElementById('wsStatus').textContent = '已连接';
+                document.getElementById('feedStatus').textContent = '实时';
+                document.getElementById('feedStatus').style.color = 'var(--neon-green)';
+                document.getElementById('feedStatus').style.borderColor = 'var(--neon-green)';
+                addLogEntry('SYS', 'WebSocket 已连接');
+            };
+
+            ws.onclose = () => {
+                document.getElementById('wsDot').classList.remove('connected');
+                document.getElementById('wsStatus').textContent = '未连接';
+                document.getElementById('feedStatus').textContent = '离线';
+                document.getElementById('feedStatus').style.color = 'var(--p0-color)';
+                document.getElementById('feedStatus').style.borderColor = 'var(--p0-color)';
+                addLogEntry('SYS', 'WebSocket 断开 — 5秒后重连');
+                setTimeout(connectWebSocket, 5000);
+            };
+
+            ws.onerror = () => {
+                addLogEntry('ERR', 'WebSocket 错误');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    handleWsMessage(msg);
+                } catch (e) {
+                    addLogEntry('RAW', event.data);
+                }
+            };
+        }
+
+        function handleWsMessage(msg) {
+            const type = msg.type || 'unknown';
+
+            if (type === 'connected') {
+                addLogEntry('SYS', msg.message);
+            } else if (type === 'stats_update') {
+                const d = msg.data || {};
+                addLogEntry('STAT', `竞品:${d.competitors_total} 活跃:${d.active_competitors} 价格:${d.recent_prices} 评论:${d.recent_reviews}`);
+                document.getElementById('statWs').textContent = d.websocket_connections ?? '--';
+            } else if (type === 'competitor_update') {
+                addLogEntry('COMP', `ID:${msg.competitor_id} 价格:${msg.data?.latest_price?.price ?? 'N/A'}`);
+            } else if (type === 'subscribed') {
+                addLogEntry('SYS', msg.message);
+            } else if (type === 'pong') {
+                addLogEntry('PONG', msg.timestamp);
+            } else {
+                addLogEntry(type.toUpperCase(), JSON.stringify(msg).slice(0, 80));
+            }
+        }
+
+        function addLogEntry(type, data) {
+            const log = document.getElementById('wsLog');
+            const time = new Date().toTimeString().split(' ')[0];
+            const entry = document.createElement('div');
+            entry.className = 'ws-log-entry';
+            entry.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="log-type"> ${type} </span>
+                <span class="log-data">${escHtml(data)}</span>
+            `;
+            log.prepend(entry);
+
+            // Keep max 100 entries
+            while (log.children.length > 100) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // ===== HELPERS =====
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function formatTime(ts) {
+            if (!ts) return 'N/A';
+            try {
+                return new Date(ts).toLocaleString('zh-CN', {
+                    month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+            } catch {
+                return ts;
+            }
+        }
+
+        // ===== INIT =====
+        async function init() {
+            initChart();
+
+            // Load all data in parallel
+            await Promise.all([
+                loadAlertStats(),
+                loadPendingAlerts(),
+                loadJobs(),
+                loadMonitoringStats(),
+                loadWsStats(),
+                updateChart(),
+                loadAnalyticsChart(),
+                loadDiffTimeline()
+            ]);
+
+            // Connect WebSocket
+            connectWebSocket();
+
+            // Competitor selector events
+            document.getElementById('analyticsCompetitor').addEventListener('change', loadAnalyticsChart);
+            document.getElementById('diffCompetitor').addEventListener('change', loadDiffTimeline);
+
+            // Auto-refresh every 30s
+            refreshTimer = setInterval(async () => {
+                await Promise.all([
+                    loadAlertStats(),
+                    loadPendingAlerts(),
+                    loadJobs(),
+                    loadWsStats(),
+                    updateChart(),
+                    loadAnalyticsChart(),
+                    loadDiffTimeline()
+                ]);
+            }, 30000);
+        }
+
+        // ===== ANALYTICS CHART (Trend + Anomaly) =====
+        let analyticsChart = null;
+
+        async function loadAnalyticsChart() {
+            const cid = document.getElementById('analyticsCompetitor').value;
+            try {
+                const [trendRes, anomalyRes] = await Promise.all([
+                    fetch(`/api/analytics/trend/${cid}?metric=price&days=7`),
+                    fetch(`/api/analytics/anomalies/${cid}?metric=price&days=14`)
+                ]);
+                const trendJson = await trendRes.json();
+                const anomalyJson = await anomalyRes.json();
+
+                if (!trendJson.success) return;
+                const trend = trendJson.data;
+                const anomalies = anomalyJson.data || [];
+
+                // Update trend info
+                const trendInfo = document.getElementById('trendInfo');
+                const trendLabel = { rising: '↑ 上升', falling: '↓ 下降', stable: '→ 稳定', insufficient_data: '? 数据不足' };
+                const trendColor = { rising: 'var(--neon-green)', falling: 'var(--neon-magenta)', stable: 'var(--neon-amber)', insufficient_data: 'var(--text-dim)' };
+                trendInfo.innerHTML = `趋势: <span style="color:${trendColor[trend.trend]}">${trendLabel[trend.trend]}</span>` +
+                    (trend.change_percentage != null ? ` | 变化: ${trend.change_percentage > 0 ? '+' : ''}${trend.change_percentage}%` : '') +
+                    ` | 异常点: <span style="color:var(--neon-magenta)">${anomalies.length}</span>`;
+
+                // Build chart
+                const values = trend.values || [];
+                const timestamps = (trend.timestamps || []).map(t => {
+                    try { return new Date(t).toLocaleDateString('zh-CN', {month:'2-digit',day:'2-digit'}); } catch { return t; }
+                });
+                const ma = trend.moving_average || [];
+
+                // Anomaly point styling
+                const anomalyIndices = new Set(anomalies.map(a => a.index));
+                const pointBg = values.map((_, i) => anomalyIndices.has(i) ? '#ff2a6d' : '#00fff0');
+                const pointR = values.map((_, i) => anomalyIndices.has(i) ? 6 : 3);
+
+                const ctx = document.getElementById('analytics-chart').getContext('2d');
+                if (analyticsChart) analyticsChart.destroy();
+
+                const datasets = [{
+                    label: '价格',
+                    data: values,
+                    borderColor: '#00fff0',
+                    backgroundColor: 'rgba(0,255,240,0.1)',
+                    pointBackgroundColor: pointBg,
+                    pointRadius: pointR,
+                    pointHoverRadius: 8,
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 2
+                }];
+
+                if (ma.length > 0) {
+                    datasets.push({
+                        label: '移动平均',
+                        data: ma,
+                        borderColor: '#b537f2',
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false,
+                        tension: 0.3,
+                        borderWidth: 1
+                    });
+                }
+
+                analyticsChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: timestamps, datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, labels: { color: '#6a6a8e', font: { family: 'JetBrains Mono', size: 10 } } },
+                            tooltip: { backgroundColor: '#0d0d18', borderColor: '#00fff0', borderWidth: 1, titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 10 }, titleColor: '#00fff0', bodyColor: '#e0e0ff' }
+                        },
+                        scales: {
+                            y: { grid: { color: 'rgba(26,26,62,0.6)' }, ticks: { color: '#6a6a8e', font: { family: 'JetBrains Mono', size: 10 } } },
+                            x: { grid: { display: false }, ticks: { color: '#6a6a8e', font: { family: 'JetBrains Mono', size: 9 }, maxRotation: 0 } }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Analytics chart error:', e);
+            }
+        }
+
+        // ===== DIFF TIMELINE =====
+        async function loadDiffTimeline() {
+            const cid = document.getElementById('diffCompetitor').value;
+            try {
+                const res = await fetch(`/api/diff/timeline/${cid}?days=7`);
+                const json = await res.json();
+                const container = document.getElementById('diffTimeline');
+
+                if (!json.success || !json.data || json.data.length === 0) {
+                    container.innerHTML = '<div class="empty-state">暂无变化记录</div>';
+                    return;
+                }
+
+                const entries = json.data;
+                const maxDiffs = Math.max(...entries.map(e => e.diff_count), 1);
+
+                container.innerHTML = entries.map(e => {
+                    const barH = Math.max(8, (e.diff_count / maxDiffs) * 50);
+                    const cls = e.has_change ? 'has-change' : 'no-change';
+                    const time = e.timestamp ? new Date(e.timestamp).toLocaleDateString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : 'N/A';
+                    const diffDetail = (e.diffs || []).map(d =>
+                        `<div><span class="diff-field">${escHtml(d.field)}</span>: <span class="diff-old">${escHtml(d.old_value)}</span> → <span class="diff-new">${escHtml(d.new_value)}</span></div>`
+                    ).join('');
+                    return `
+                        <div class="diff-entry" style="position:relative">
+                            <div class="diff-count">${e.diff_count > 0 ? e.diff_count : ''}</div>
+                            <div class="diff-bar ${cls}" style="height:${barH}px"></div>
+                            <div class="diff-time">${time}</div>
+                            ${diffDetail ? `<div class="diff-detail">${diffDetail}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Diff timeline error:', e);
+            }
+        }
+
+        // Boot
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

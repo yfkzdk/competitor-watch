@@ -1,0 +1,245 @@
+# 聊天式助手配置文件模板
+# 这个文件定义了智能默认值系统和公司类型识别规则
+
+company_types:
+  # 电商平台
+  ecommerce:
+    name: "电商平台"
+    description: "电子商务平台，如淘宝、京东、拼多多等"
+    default_patterns: ["product_updates", "pricing_changes", "promotional_activities"]
+    default_frequency: "hourly"
+    default_priority: "high"
+    domain_patterns: ["taobao.com", "jd.com", "pinduoduo.com", "tmall.com", "amazon", "ebay"]
+
+  # 社交媒体
+  social_media:
+    name: "社交媒体"
+    description: "社交平台，如微信、抖音、微博等"
+    default_patterns: ["content_updates", "user_growth", "engagement_metrics"]
+    default_frequency: "hourly"
+    default_priority: "high"
+    domain_patterns: ["wechat.com", "weibo.com", "douyin.com", "kuaishou.com", "tiktok"]
+
+  # 云服务提供商
+  cloud_provider:
+    name: "云服务提供商"
+    description: "云计算服务，如阿里云、腾讯云、AWS等"
+    default_patterns: ["documentation_updates", "api_changes", "pricing_changes"]
+    default_frequency: "daily"
+    default_priority: "high"
+    domain_patterns: ["aliyun.com", "tencent.com", "huaweicloud.com", "aws.amazon.com", "azure.com"]
+
+  # 软件服务
+  software_saas:
+    name: "软件即服务"
+    description: "SaaS软件服务，如钉钉、飞书、Slack等"
+    default_patterns: ["product_updates", "feature_announcements", "pricing_changes"]
+    default_frequency: "daily"
+    default_priority: "medium"
+    domain_patterns: ["dingtalk.com", "feishu.cn", "slack.com", "notion.so", "figma.com"]
+
+  # 硬件制造商
+  hardware:
+    name: "硬件制造商"
+    description: "硬件设备制造商，如华为、小米、苹果等"
+    default_patterns: ["product_launches", "technical_specs", "pricing_changes"]
+    default_frequency: "weekly"
+    default_priority: "medium"
+    domain_patterns: ["huawei.com", "mi.com", "apple.com", "samsung.com"]
+
+  # 金融科技
+  fintech:
+    name: "金融科技"
+    description: "金融科技公司，如支付宝、微信支付、蚂蚁金服等"
+    default_patterns: ["regulatory_updates", "service_expansions", "partnerships"]
+    default_frequency: "daily"
+    default_priority: "high"
+    domain_patterns: ["alipay.com", "antgroup.com", "wechat.com/finance"]
+
+  # 新闻媒体
+  news_media:
+    name: "新闻媒体"
+    description: "新闻资讯平台，如新浪、网易、腾讯新闻等"
+    default_patterns: ["news_announcements", "content_updates", "trending_topics"]
+    default_frequency: "hourly"
+    default_priority: "low"
+    domain_patterns: ["sina.com.cn", "163.com", "qq.com/news", "sohu.com"]
+
+  # 企业服务
+  enterprise:
+    name: "企业服务"
+    description: "企业级服务，如金蝶、用友、Salesforce等"
+    default_patterns: ["product_updates", "documentation_updates", "case_studies"]
+    default_frequency: "weekly"
+    default_priority: "medium"
+    domain_patterns: ["kingdee.com", "yonyou.com", "salesforce.com", "sap.com"]
+
+# 关键词到公司类型的映射
+keyword_to_type:
+  # 电商关键词
+  电商: "ecommerce"
+  购物: "ecommerce"
+  商城: "ecommerce"
+  零售: "ecommerce"
+  淘宝: "ecommerce"
+  京东: "ecommerce"
+  拼多多: "ecommerce"
+
+  # 社交关键词
+  社交: "social_media"
+  社区: "social_media"
+  聊天: "social_media"
+  视频: "social_media"
+  抖音: "social_media"
+  微信: "social_media"
+  微博: "social_media"
+  快手: "social_media"
+
+  # 云服务关键词
+  云: "cloud_provider"
+  云计算: "cloud_provider"
+  服务器: "cloud_provider"
+  存储: "cloud_provider"
+  阿里云: "cloud_provider"
+  腾讯云: "cloud_provider"
+  华为云: "cloud_provider"
+  AWS: "cloud_provider"
+
+  # 软件关键词
+  软件: "software_saas"
+  应用: "software_saas"
+  工具: "software_saas"
+  系统: "software_saas"
+  SaaS: "software_saas"
+  钉钉: "software_saas"
+  飞书: "software_saas"
+
+  # 硬件关键词
+  硬件: "hardware"
+  设备: "hardware"
+  手机: "hardware"
+  电脑: "hardware"
+  华为: "hardware"
+  小米: "hardware"
+  苹果: "hardware"
+
+  # 金融关键词
+  金融: "fintech"
+  支付: "fintech"
+  理财: "fintech"
+  银行: "fintech"
+  支付宝: "fintech"
+  微信支付: "fintech"
+
+  # 媒体关键词
+  新闻: "news_media"
+  资讯: "news_media"
+  媒体: "news_media"
+  博客: "news_media"
+  新浪: "news_media"
+  网易: "news_media"
+
+  # 企业关键词
+  企业: "enterprise"
+  B2B: "enterprise"
+  办公: "enterprise"
+  管理: "enterprise"
+  金蝶: "enterprise"
+  用友: "enterprise"
+
+# 监控内容关键词映射
+content_keywords:
+  product_updates: ["产品", "新品", "更新", "版本", "迭代", "发布", "功能", "特性"]
+  pricing_changes: ["价格", "价钱", "定价", "报价", "费用", "成本", "收费", "涨价", "降价"]
+  documentation_updates: ["文档", "文档", "手册", "指南", "教程", "API", "接口", "SDK"]
+  news_announcements: ["新闻", "动态", "消息", "公告", "通知", "活动", "事件", "发布会"]
+  job_postings: ["招聘", "招人", "岗位", "职位", "工作", "人才", "团队", "职位"]
+  promotional_activities: ["活动", "促销", "优惠", "打折", "特价", "福利", "红包", "券"]
+  api_changes: ["API", "接口", "SDK", "开发", "编程", "调用", "文档", "更新"]
+  regulatory_updates: ["政策", "法规", "监管", "合规", "法律", "规定", "要求"]
+
+# 频率关键词映射
+frequency_keywords:
+  hourly: ["实时", "每小时", "一小时", "高频", "立即", "马上", "即刻"]
+  daily: ["每天", "每日", "一天", "日", "日常", "常规", "定期"]
+  weekly: ["每周", "星期", "一周", "周", "周报", "周度", "周末"]
+  monthly: ["每月", "月度", "月报", "一月", "月底", "月初"]
+
+# 优先级关键词映射
+priority_keywords:
+  high: ["高", "重要", "关键", "紧急", "优先", "首要", "核心", "主要"]
+  medium: ["中", "一般", "普通", "中等", "常规", "标准", "正常", "基本"]
+  low: ["低", "次要", "非关键", "不紧急", "辅助", "参考", "观察"]
+
+# 命令模板示例
+command_templates:
+  - "监控[公司]的[内容]，[频率]检查一次"
+  - "[频率]监控[公司]的[内容]变化"
+  - "关注[公司]的[内容]更新"
+  - "追踪[公司]的[内容]动态"
+  - "检查[公司]的[内容]情况"
+
+# 响应模板
+response_templates:
+  success: "✅ 已为您配置监控任务：\n\n监控目标：{targets}\n监控频率：{frequency}\n监控内容：{patterns}\n配置文件：{config_file}\n\n系统将自动执行监控，重要变化会及时通知您！"
+
+  confirmation: "🤖 确认监控配置：\n目标：{targets}\n频率：{frequency}\n内容：{patterns}\n\n确认开始监控吗？(Y/n)"
+
+  no_targets: "❌ 没有识别到明确的监控目标。\n请提供公司名称或网址，例如：'监控抖音的产品和价格'"
+
+  processing: "🔍 正在解析您的命令...\n📋 正在生成配置...\n🚀 正在启动监控..."
+
+  complete: "🎉 监控任务配置完成！\n📊 系统将按照配置自动运行。\n👁️ 您可以随时查看监控结果和报告。"
+
+# 智能默认值配置
+smart_defaults:
+  # 公司类型检测的置信度阈值
+  detection_threshold: 0.6
+
+  # 默认监控设置
+  defaults:
+    monitoring_frequency: "daily"
+    priority: "medium"
+    scrape_patterns: ["product_updates", "pricing_changes"]
+
+  # 公司类型特定的默认值
+  type_specific_defaults:
+    ecommerce:
+      monitoring_frequency: "hourly"
+      priority: "high"
+      scrape_patterns: ["product_updates", "pricing_changes", "promotional_activities"]
+
+    social_media:
+      monitoring_frequency: "hourly"
+      priority: "high"
+      scrape_patterns: ["content_updates", "user_growth", "engagement_metrics"]
+
+    cloud_provider:
+      monitoring_frequency: "daily"
+      priority: "high"
+      scrape_patterns: ["documentation_updates", "api_changes", "pricing_changes"]
+
+    software_saas:
+      monitoring_frequency: "daily"
+      priority: "medium"
+      scrape_patterns: ["product_updates", "feature_announcements", "pricing_changes"]
+
+    hardware:
+      monitoring_frequency: "weekly"
+      priority: "medium"
+      scrape_patterns: ["product_launches", "technical_specs", "pricing_changes"]
+
+    fintech:
+      monitoring_frequency: "daily"
+      priority: "high"
+      scrape_patterns: ["regulatory_updates", "service_expansions", "partnerships"]
+
+    news_media:
+      monitoring_frequency: "hourly"
+      priority: "low"
+      scrape_patterns: ["news_announcements", "content_updates", "trending_topics"]
+
+    enterprise:
+      monitoring_frequency: "weekly"
+      priority: "medium"
+      scrape_patterns: ["product_updates", "documentation_updates", "case_studies"]

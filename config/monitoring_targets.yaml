@@ -1,0 +1,196 @@
+version: "2.0.0"
+monitoring_targets:
+  competitors:
+    # === 一线云厂商 ===
+    - name: "阿里云"
+      domains:
+        - "https://www.aliyun.com"
+        - "https://www.aliyun.com/product"
+        - "https://www.aliyun.com/price/product"
+        - "https://developer.aliyun.com"
+      monitoring_frequency: "5min"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "announcements"
+        - "new_features"
+
+    - name: "腾讯云"
+      domains:
+        - "https://cloud.tencent.com"
+        - "https://cloud.tencent.com/product"
+        - "https://cloud.tencent.com/price"
+        - "https://cloud.tencent.com/developer"
+      monitoring_frequency: "5min"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "announcements"
+
+    - name: "华为云"
+      domains:
+        - "https://www.huaweicloud.com"
+        - "https://www.huaweicloud.com/product"
+        - "https://www.huaweicloud.com/pricing"
+      monitoring_frequency: "5min"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "announcements"
+
+    # === 二线云厂商 ===
+    - name: "百度智能云"
+      domains:
+        - "https://cloud.baidu.com"
+        - "https://cloud.baidu.com/product"
+        - "https://cloud.baidu.com/price"
+      monitoring_frequency: "15min"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "ai_products"
+
+    - name: "京东云"
+      domains:
+        - "https://www.jdcloud.com"
+        - "https://www.jdcloud.com/products"
+        - "https://www.jdcloud.com/price"
+      monitoring_frequency: "15min"
+      priority: "medium"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+
+    - name: "金山云"
+      domains:
+        - "https://www.ksyun.com"
+        - "https://www.ksyun.com/products"
+      monitoring_frequency: "30min"
+      priority: "medium"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+
+    - name: "UCloud"
+      domains:
+        - "https://www.ucloud.cn"
+        - "https://www.ucloud.cn/product"
+        - "https://www.ucloud.cn/price"
+      monitoring_frequency: "30min"
+      priority: "medium"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+
+    - name: "七牛云"
+      domains:
+        - "https://www.qiniu.com"
+        - "https://www.qiniu.com/products"
+        - "https://www.qiniu.com/prices"
+      monitoring_frequency: "30min"
+      priority: "medium"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+
+    # === 国际云中国区 ===
+    - name: "AWS中国"
+      domains:
+        - "https://www.amazonaws.cn"
+        - "https://www.amazonaws.cn/products"
+      monitoring_frequency: "15min"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "global_announcements"
+
+    - name: "Azure中国"
+      domains:
+        - "https://www.azure.cn"
+        - "https://www.azure.cn/pricing"
+      monitoring_frequency: "15min"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "global_announcements"
+
+  industry_news:
+    sources:
+      - "https://36kr.com"
+      - "https://36kr.com/newsflashes"
+      - "https://www.infoq.cn"
+      - "https://juejin.cn"
+      - "https://www.oschina.net"
+      - "https://techcrunch.com/tag/artificial-intelligence/"
+      - "https://venturebeat.com/ai/"
+    frequency: "5min"
+    categories:
+      - "funding_rounds"
+      - "mergers_acquisitions"
+      - "product_launches"
+      - "regulatory_changes"
+      - "ai_breakthroughs"
+      - "cloud_computing"
+      - "open_source"
+
+  social_media:
+    platforms:
+      bilibili:
+        uploaders:
+          - name: "科技美学"
+            mid: 217547
+          - name: "老师好我叫何同学"
+            mid: 163637592
+          - name: "极客湾Geekerwan"
+            mid: 130954
+          - name: "影视飓风"
+            mid: 946974
+          - name: "小约翰可汗"
+            mid: 427394424
+          - name: "硬件茶谈"
+            mid: 427394424
+          - name: "极客之选"
+            mid: 27948438
+        frequency: "15min"
+        page_size: 50
+      weibo:
+        enabled: true
+        hot_search_limit: 50
+        frequency: "5min"
+      zhihu:
+        enabled: true
+        topics:
+          - "人工智能"
+          - "云计算"
+          - "编程"
+          - "互联网"
+          - "科技"
+        hot_list_limit: 50
+        frequency: "15min"
+      twitter:
+        accounts:
+          - "@AWSCloud"
+          - "@Azure"
+          - "@GoogleCloud"
+          - "@AliCloud"
+        frequency: "15min"
+      linkedin:
+        companies:
+          - "Alibaba Cloud"
+          - "Tencent Cloud"
+          - "Huawei Cloud"
+          - "Baidu Cloud"
+        frequency: "daily"
+
+  dry_run_settings:
+    mock_data_enabled: false
+    max_mock_records: 0
+    simulate_network_latency: false
+    latency_range_ms: [0, 0]
+    error_simulation_rate: 0.0

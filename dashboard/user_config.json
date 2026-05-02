@@ -1,0 +1,18 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 5000,
+    "debug": false
+  },
+  "dashboard": {
+    "title": "竞品监控系统 - 普通用户版",
+    "refresh_interval": 5000,
+    "show_welcome": true
+  },
+  "features": {
+    "real_time_charts": true,
+    "competitor_management": true,
+    "report_generation": true,
+    "plugin_market": true
+  }
+}

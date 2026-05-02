@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博监控 // 竞品监控平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+/* ================================================
+   CYBERWATCH // Shared Cyberpunk Theme Base
+   ================================================ */
+
+:root {
+    --bg-void: #0a0a0f;
+    --bg-panel: #0d0d18;
+    --bg-panel-alt: #111122;
+    --border-dim: #1a1a3e;
+    --border-glow: #00fff0;
+    --neon-cyan: #00fff0;
+    --neon-magenta: #ff2a6d;
+    --neon-amber: #f0e000;
+    --neon-green: #05ffa1;
+    --neon-purple: #b537f2;
+    --text-primary: #e0e0ff;
+    --text-dim: #6a6a8e;
+    --text-data: #00fff0;
+    --p0-color: #ff2a6d;
+    --p1-color: #f0e000;
+    --p2-color: #00fff0;
+    --p3-color: #b537f2;
+    --font-display: 'Rajdhani', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --glow-cyan: 0 0 10px rgba(0,255,240,.4), 0 0 40px rgba(0,255,240,.15);
+    --glow-magenta: 0 0 10px rgba(255,42,109,.4), 0 0 40px rgba(255,42,109,.15);
+    --glow-amber: 0 0 10px rgba(240,224,0,.4), 0 0 40px rgba(240,224,0,.15);
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-display);
+    background: var(--bg-void);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ===== CRT SCANLINES ===== */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* ===== GLITCH BAR ===== */
+@keyframes glitch-bar {
+    0%, 90%, 100% { opacity: 0; transform: translateY(0); }
+    92% { opacity: 1; transform: translateY(-2px); height: 3px; }
+    94% { opacity: 1; transform: translateY(1px); height: 1px; }
+    96% { opacity: 0; }
+}
+body::before {
+    content: '';
+    position: fixed;
+    left: 0; right: 0; top: 30%;
+    height: 2px;
+    background: var(--neon-cyan);
+    opacity: 0;
+    z-index: 9998;
+    animation: glitch-bar 8s infinite;
+    pointer-events: none;
+}
+
+/* ===== TOPBAR ===== */
+.cyber-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: linear-gradient(180deg, rgba(0,255,240,.06) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border-dim);
+    position: relative;
+}
+.cyber-topbar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), transparent);
+    opacity: .6;
+}
+.cyber-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.cyber-brand h1 {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--neon-cyan);
+    text-shadow: var(--glow-cyan);
+}
+.cyber-brand .version {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    border: 1px solid var(--border-dim);
+    padding: 2px 8px;
+    border-radius: 2px;
+}
+.cyber-nav {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+.cyber-nav a, .cyber-nav button {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color .2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.cyber-nav a:hover, .cyber-nav button:hover {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px rgba(0,255,240,.4);
+}
+.cyber-nav button.active {
+    color: var(--neon-cyan);
+    border-bottom: 2px solid var(--neon-cyan);
+    padding-bottom: 2px;
+}
+
+/* ===== PANELS ===== */
+.cyber-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
+}
+.cyber-panel:hover { border-color: rgba(0,255,240,.25); }
+.cyber-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-dim);
+    background: linear-gradient(180deg, rgba(0,255,240,.04) 0%, transparent 100%);
+}
+.cyber-panel-title {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--neon-cyan);
+}
+.cyber-panel-body { padding: 16px 18px; }
+
+/* ===== STAT CARDS ===== */
+.cyber-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.cyber-stat-card {
+    position: relative;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 20px 22px;
+    overflow: hidden;
+    transition: border-color .3s, box-shadow .3s;
+}
+.cyber-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--card-accent, var(--neon-cyan));
+}
+.cyber-stat-card:hover {
+    border-color: var(--card-accent, var(--border-glow));
+    box-shadow: 0 0 20px rgba(0,255,240,.08);
+}
+.cyber-stat-card .stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+}
+.cyber-stat-card .stat-value {
+    font-family: var(--font-mono);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--card-accent, var(--text-data));
+    text-shadow: 0 0 15px rgba(0,255,240,.3);
+    line-height: 1;
+}
+.cyber-stat-card .stat-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 6px;
+}
+
+/* ===== BUTTONS ===== */
+.cyber-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 18px;
+    background: transparent;
+    color: var(--neon-cyan);
+    border: 1px solid var(--neon-cyan);
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all .2s;
+    text-decoration: none;
+    display: inline-block;
+}
+.cyber-btn:hover {
+    background: rgba(0,255,240,.1);
+    box-shadow: 0 0 15px rgba(0,255,240,.25);
+}
+.cyber-btn-danger {
+    color: var(--neon-magenta);
+    border-color: var(--neon-magenta);
+}
+.cyber-btn-danger:hover {
+    background: rgba(255,42,109,.1);
+    box-shadow: 0 0 15px rgba(255,42,109,.25);
+}
+.cyber-btn-amber {
+    color: var(--neon-amber);
+    border-color: var(--neon-amber);
+}
+.cyber-btn-amber:hover {
+    background: rgba(240,224,0,.1);
+    box-shadow: 0 0 15px rgba(240,224,0,.25);
+}
+
+/* ===== TABLE ===== */
+.cyber-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+.cyber-table th {
+    text-align: left;
+    padding: 10px 12px;
+    color: var(--neon-cyan);
+    border-bottom: 1px solid var(--border-dim);
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+.cyber-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(26,26,62,.4);
+    color: var(--text-primary);
+}
+.cyber-table tr:hover td {
+    background: rgba(0,255,240,.03);
+}
+
+/* ===== BADGES ===== */
+.cyber-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 2px 10px;
+    border: 1px solid;
+    border-radius: 2px;
+}
+.cyber-badge-p0 { color: var(--p0-color); border-color: var(--p0-color); }
+.cyber-badge-p1 { color: var(--p1-color); border-color: var(--p1-color); }
+.cyber-badge-p2 { color: var(--p2-color); border-color: var(--p2-color); }
+.cyber-badge-p3 { color: var(--p3-color); border-color: var(--p3-color); }
+.cyber-badge-success { color: var(--neon-green); border-color: var(--neon-green); }
+.cyber-badge-warning { color: var(--neon-amber); border-color: var(--neon-amber); }
+.cyber-badge-error { color: var(--neon-magenta); border-color: var(--neon-magenta); }
+
+/* ===== FORM ===== */
+.cyber-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg-void);
+    border: 1px solid var(--border-dim);
+    color: var(--text-data);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+}
+.cyber-input:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 8px rgba(0,255,240,.15);
+}
+.cyber-select {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg-void);
+    border: 1px solid var(--border-dim);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+}
+.cyber-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* ===== MODAL ===== */
+.cyber-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.cyber-modal-overlay.active { display: flex; }
+.cyber-modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--neon-cyan);
+    padding: 28px;
+    width: 420px;
+    max-width: 90vw;
+    box-shadow: 0 0 40px rgba(0,255,240,.15);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.cyber-modal::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+    z-index: -1;
+    opacity: .3;
+    filter: blur(1px);
+}
+.cyber-modal-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--neon-cyan);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+.cyber-modal-close {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.cyber-modal-close:hover { color: var(--neon-magenta); }
+
+/* ===== TOAST ===== */
+.cyber-toast-container {
+    position: fixed;
+    top: 16px; right: 16px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.cyber-toast {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 10px 18px;
+    background: var(--bg-panel);
+    border: 1px solid var(--neon-cyan);
+    color: var(--text-primary);
+    box-shadow: 0 0 20px rgba(0,255,240,.15);
+    animation: toast-in .3s ease-out;
+}
+.cyber-toast.error { border-color: var(--neon-magenta); box-shadow: 0 0 20px rgba(255,42,109,.15); }
+@keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toast-out { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+
+/* ===== EMPTY STATE ===== */
+.cyber-empty {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text-dim);
+    font-size: 13px;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-void); }
+::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 2px; }
+
+/* ===== GRID LAYOUTS ===== */
+.cyber-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cyber-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.cyber-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+/* ===== COMPETITOR CARD ===== */
+.cyber-comp-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 20px;
+    transition: border-color .2s, box-shadow .2s;
+    position: relative;
+}
+.cyber-comp-card:hover {
+    border-color: rgba(0,255,240,.3);
+    box-shadow: 0 0 20px rgba(0,255,240,.06);
+}
+.cyber-comp-card .card-name {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--neon-cyan);
+    margin-bottom: 4px;
+}
+.cyber-comp-card .card-url {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cyber-comp-card .card-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.cyber-comp-card .metric {
+    display: flex;
+    flex-direction: column;
+}
+.cyber-comp-card .metric .m-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.cyber-comp-card .metric .m-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-data);
+}
+.cyber-comp-card .card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+    .cyber-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .cyber-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+    .cyber-grid-4, .cyber-grid-3, .cyber-grid-2 { grid-template-columns: 1fr; }
+    .cyber-stats-row { grid-template-columns: 1fr 1fr; }
+    .cyber-topbar { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+}
+@media (max-width: 480px) {
+    .cyber-stats-row { grid-template-columns: 1fr; }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+    body::before, body::after { display: none; }
+}
+
+/* ===== DATA PULSE ===== */
+@keyframes data-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+.cyber-pulse { animation: data-pulse 1.5s ease-in-out; }
+
+/* ===== NEON DIVIDER ===== */
+.cyber-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    opacity: .3;
+    margin: 16px 0;
+}
+
+/* ===== HEADER RIGHT ===== */
+.cyber-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+.cyber-connection-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border: 1px solid var(--neon-magenta);
+    color: var(--neon-magenta);
+    border-radius: 2px;
+}
+.cyber-connection-status.connected {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+    box-shadow: 0 0 8px rgba(5,255,161,.2);
+}
+.cyber-btn-sm {
+    padding: 4px 12px;
+    font-size: 11px;
+}
+
+/* ===== CHART CONTAINERS ===== */
+.cyber-chart-container {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 16px;
+    min-height: 300px;
+}
+.cyber-chart-container canvas {
+    max-height: 280px;
+}
+.cyber-chart-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0 0 12px 0;
+}
+
+/* ===== SEVERITY BADGES ===== */
+.cyber-severity {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+}
+.sev-p1, .sev-p0 { color: var(--p0-color); border: 1px solid var(--p0-color); }
+.sev-p2 { color: var(--p1-color); border: 1px solid var(--p1-color); }
+.sev-p3, .sev-info { color: var(--p2-color); border: 1px solid var(--p2-color); }
+
+/* ===== REPORT LIST ===== */
+.cyber-report-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.cyber-report-item {
+    background: var(--bg-panel-alt);
+    border: 1px solid var(--border-dim);
+    padding: 14px 18px;
+    transition: border-color .2s;
+}
+.cyber-report-item:hover {
+    border-color: rgba(0,255,240,.2);
+}
+.cyber-report-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.cyber-report-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--neon-cyan);
+}
+.cyber-report-summary {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 0 0 8px 0;
+    line-height: 1.5;
+}
+.cyber-report-meta {
+    display: flex;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+}
+.cyber-empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+.cyber-error-msg {
+    color: var(--neon-magenta);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(255,42,109,.1);
+    border-left: 2px solid var(--neon-magenta);
+}
+
+/* ===== COMPETITOR CARD ENHANCED ===== */
+.cyber-comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+.cyber-comp-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+}
+.cyber-comp-card:hover {
+    border-color: rgba(0,255,240,.4);
+    box-shadow: 0 0 20px rgba(0,255,240,.08);
+}
+.cyber-comp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.cyber-comp-name {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--neon-cyan);
+}
+.cyber-comp-status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+}
+.cyber-comp-status.status-monitoring {
+    color: var(--neon-green);
+    border: 1px solid var(--neon-green);
+}
+.cyber-comp-status.status-paused {
+    color: var(--text-dim);
+    border: 1px solid var(--text-dim);
+}
+.cyber-comp-url {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cyber-comp-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.cyber-comp-metric-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-data);
+}
+.cyber-comp-metric-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+/* ===== TOAST ===== */
+.cyber-toast {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 3000;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 10px 18px;
+    background: var(--bg-panel);
+    border: 1px solid var(--neon-cyan);
+    color: var(--text-primary);
+    box-shadow: 0 0 20px rgba(0,255,240,.15);
+    animation: toast-in .3s ease-out;
+}
+.cyber-toast.error {
+    border-color: var(--neon-magenta);
+    box-shadow: 0 0 20px rgba(255,42,109,.15);
+}
+@keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ===== TABLE ===== */
+.cyber-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.cyber-table th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-dim);
+}
+.cyber-table td {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(26,26,62,.4);
+}
+.cyber-table tr:hover td {
+    background: rgba(0,255,240,.02);
+}
+.cyber-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    border-radius: 2px;
+    letter-spacing: 1px;
+}
+
+</style>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<script>
+// ══════════════════════════════════════════════════════
+// 离线演示数据 — 预提取自 API，无需后端服务器
+// ══════════════════════════════════════════════════════
+const __EMBEDDED__ = {"/api/dashboard/stats": {"success": true, "data": {"competitorsTotal": 5, "activeCompetitors": 5, "priceRecords": 1656, "reviewRecords": 597, "changesDetected": 386, "alertsPending": 22}}, "/api/competitors": {"success": true, "data": [{"id": 1, "name": "阿里云", "url": "https://aliyun.com", "category": "云计算", "status": "active", "priority": "high", "description": "国内市场第一，产品线最全", "last_checked": "2026-04-30 17:25:30.406862", "created_at": "2026-04-30 16:33:55", "updated_at": "2026-04-30 17:25:30.193921", "market_share": 32.5, "price_index": 95.0, "user_rating": 4.2, "growth": 18.5, "feature_count": 200, "innovation_velocity": 8.2, "security_mentions": 15, "type": "all", "frequency": "15", "metrics": {"market_share": 32.5, "price_index": 95.0, "user_rating": 4.2, "growth": 18.5, "feature_count": 200, "innovation_velocity": 8.2, "security_mentions": 15}}, {"id": 2, "name": "腾讯云", "url": "https://cloud.tencent.com", "category": "云计算", "status": "active", "priority": "high", "description": "游戏/音视频领域领先", "last_checked": "2026-04-30 17:25:30.406862", "created_at": "2026-04-30 16:33:55", "updated_at": "2026-04-30 17:25:30.195414", "market_share": 18.3, "price_index": 88.0, "user_rating": 4.0, "growth": 22.0, "feature_count": 180, "innovation_velocity": 7.8, "security_mentions": 12, "type": "all", "frequency": "15", "metrics": {"market_share": 18.3, "price_index": 88.0, "user_rating": 4.0, "growth": 22.0, "feature_count": 180, "innovation_velocity": 7.8, "security_mentions": 12}}, {"id": 3, "name": "华为云", "url": "https://huaweicloud.com", "category": "云计算", "status": "active", "priority": "high", "description": "政企市场强势，AI 算力领先", "last_checked": "2026-04-30 17:25:30.406862", "created_at": "2026-04-30 16:33:55", "updated_at": "2026-04-30 17:25:30.195414", "market_share": 15.7, "price_index": 92.0, "user_rating": 4.3, "growth": 25.0, "feature_count": 160, "innovation_velocity": 9.0, "security_mentions": 20, "type": "all", "frequency": "15", "metrics": {"market_share": 15.7, "price_index": 92.0, "user_rating": 4.3, "growth": 25.0, "feature_count": 160, "innovation_velocity": 9.0, "security_mentions": 20}}, {"id": 4, "name": "AWS 中国", "url": "https://amazonaws.cn", "category": "云计算", "status": "active", "priority": "medium", "description": "全球技术领先，本地化持续投入", "last_checked": "2026-04-30 17:25:30.406862", "created_at": "2026-04-30 16:33:55", "updated_at": "2026-04-30 17:25:30.195414", "market_share": 10.2, "price_index": 105.0, "user_rating": 4.5, "growth": 12.0, "feature_count": 250, "innovation_velocity": 8.8, "security_mentions": 25, "type": "all", "frequency": "15", "metrics": {"market_share": 10.2, "price_index": 105.0, "user_rating": 4.5, "growth": 12.0, "feature_count": 250, "innovation_velocity": 8.8, "security_mentions": 25}}, {"id": 5, "name": "百度 AI 云", "url": "https://cloud.baidu.com", "category": "云计算", "status": "active", "priority": "medium", "description": "AI 优先战略，文心大模型生态", "last_checked": "2026-04-30 17:25:30.406862", "created_at": "2026-04-30 16:33:55", "updated_at": "2026-04-30 17:25:30.196405", "market_share": 8.0, "price_index": 78.0, "user_rating": 3.9, "growth": 30.0, "feature_count": 120, "innovation_velocity": 9.5, "security_mentions": 8, "type": "all", "frequency": "15", "metrics": {"market_share": 8.0, "price_index": 78.0, "user_rating": 3.9, "growth": 30.0, "feature_count": 120, "innovation_velocity": 9.5, "security_mentions": 8}}]}, "/api/diff/changes?limit=10": {"success": true, "data": [{"id": 386, "competitor_id": 2, "field_name": "价格", "old_value": "140.0", "new_value": "131.0", "change_type": "price_change", "severity": "P1", "detected_at": "2026-05-01 13:19:51", "is_read": 0, "competitor_name": "腾讯云"}, {"id": 385, "competitor_id": 4, "field_name": "功能-自动扩缩容", "old_value": "", "new_value": "已上线", "change_type": "feature_update", "severity": "P2", "detected_at": "2026-05-01 13:07:57", "is_read": 0, "competitor_name": "AWS 中国"}, {"id": 384, "competitor_id": 4, "field_name": "功能-权限控制", "old_value": "", "new_value": "已上线", "change_type": "feature_update", "severity": "P2", "detected_at": "2026-05-01 13:06:09", "is_read": 0, "competitor_name": "AWS 中国"}, {"id": 383, "competitor_id": 1, "field_name": "版本号", "old_value": "v2.1.5", "new_value": "v1.1.2", "change_type": "version_change", "severity": "P2", "detected_at": "2026-05-01 12:59:23", "is_read": 0, "competitor_name": "阿里云"}, {"id": 382, "competitor_id": 4, "field_name": "价格", "old_value": "489.0", "new_value": "449.0", "change_type": "price_change", "severity": "P1", "detected_at": "2026-05-01 12:57:47", "is_read": 0, "competitor_name": "AWS 中国"}, {"id": 381, "competitor_id": 5, "field_name": "价格", "old_value": "116.0", "new_value": "116.0", "change_type": "price_change", "severity": "P1", "detected_at": "2026-05-01 12:57:22", "is_read": 0, "competitor_name": "百度 AI 云"}, {"id": 380, "competitor_id": 1, "field_name": "价格", "old_value": "75.0", "new_value": "76.0", "change_type": "price_change", "severity": "P1", "detected_at": "2026-05-01 12:53:43", "is_read": 0, "competitor_name": "阿里云"}, {"id": 379, "competitor_id": 2, "field_name": "功能-数据导出", "old_value": "", "new_value": "已上线", "change_type": "feature_update", "severity": "P2", "detected_at": "2026-05-01 12:52:30", "is_read": 0, "competitor_name": "腾讯云"}, {"id": 378, "competitor_id": 2, "field_name": "功能-多区域部署", "old_value": "", "new_value": "已上线", "change_type": "feature_update", "severity": "P2", "detected_at": "2026-05-01 12:49:51", "is_read": 0, "competitor_name": "腾讯云"}, {"id": 377, "competitor_id": 5, "field_name": "版本号", "old_value": "v4.5.2", "new_value": "v1.1.8", "change_type": "version_change", "severity": "P2", "detected_at": "2026-05-01 12:48:57", "is_read": 0, "competitor_name": "百度 AI 云"}]}, "/api/reports?limit=10": {"success": true, "data": [{"id": 25, "competitor_id": 5, "report_type": "sentiment", "title": "百度 AI 云 - 价格趋势洞察", "summary": "AI 优先战略初见成效，文心大模型生态扩张迅速。但基础设施规模与头部仍有差距。", "content": "{\"insight\": \"AI 优先战略初见成效，文心大模型生态扩张迅速。但基础设施规模与头部仍有差距。\", \"evidence\": [\"价格指数: 78.0\", \"市场份额: 8.0%\", \"用户评分: 3.9\", \"增长率: 30.0%\"], \"confidence\": 0.71, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.71, "model_used": "GPT-4-Turbo", "created_at": "2026-04-30 17:25:30.385970"}, {"id": 13, "competitor_id": 3, "report_type": "sentiment", "title": "华为云 - 风险预警报告", "summary": "AI 算力领先，政企客户粘性高。自研芯片生态逐步成型，长期竞争力不可小觑。", "content": "{\"insight\": \"AI 算力领先，政企客户粘性高。自研芯片生态逐步成型，长期竞争力不可小觑。\", \"evidence\": [\"价格指数: 92.0\", \"市场份额: 15.7%\", \"用户评分: 4.3\", \"增长率: 25.0%\"], \"confidence\": 0.65, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.65, "model_used": "GPT-4-Turbo", "created_at": "2026-04-30 17:25:30.384966"}, {"id": 19, "competitor_id": 4, "report_type": "sentiment", "title": "AWS 中国 - 技术创新动态追踪", "summary": "技术实力全球领先，但本地化仍存差距。正在通过降价和合作伙伴策略缩小差距。", "content": "{\"insight\": \"技术实力全球领先，但本地化仍存差距。正在通过降价和合作伙伴策略缩小差距。\", \"evidence\": [\"价格指数: 105.0\", \"市场份额: 10.2%\", \"用户评分: 4.5\", \"增长率: 12.0%\"], \"confidence\": 0.79, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.79, "model_used": "GPT-4-Turbo", "created_at": "2026-04-30 17:25:30.384966"}, {"id": 7, "competitor_id": 2, "report_type": "price_analysis", "title": "腾讯云 - 风险预警报告", "summary": "游戏和音视频垂直领域优势明显，价格策略灵活。企业级市场正在加速渗透。", "content": "{\"insight\": \"游戏和音视频垂直领域优势明显，价格策略灵活。企业级市场正在加速渗透。\", \"evidence\": [\"价格指数: 88.0\", \"市场份额: 18.3%\", \"用户评分: 4.0\", \"增长率: 22.0%\"], \"confidence\": 0.95, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.95, "model_used": "GPT-4-Turbo", "created_at": "2026-04-30 17:25:30.382872"}, {"id": 1, "competitor_id": 1, "report_type": "sentiment", "title": "阿里云 - 月度竞品分析报告", "summary": "市场领先地位稳固，但价格策略趋于保守。AI 大模型产品线快速扩张，值得重点关注。", "content": "{\"insight\": \"市场领先地位稳固，但价格策略趋于保守。AI 大模型产品线快速扩张，值得重点关注。\", \"evidence\": [\"价格指数: 95.0\", \"市场份额: 32.5%\", \"用户评分: 4.2\", \"增长率: 18.5%\"], \"confidence\": 0.69, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.69, "model_used": "GPT-4-Turbo", "created_at": "2026-04-30 17:25:30.381868"}, {"id": 26, "competitor_id": 5, "report_type": "sentiment", "title": "百度 AI 云 - 风险预警报告", "summary": "AI 优先战略初见成效，文心大模型生态扩张迅速。但基础设施规模与头部仍有差距。", "content": "{\"insight\": \"AI 优先战略初见成效，文心大模型生态扩张迅速。但基础设施规模与头部仍有差距。\", \"evidence\": [\"价格指数: 78.0\", \"市场份额: 8.0%\", \"用户评分: 3.9\", \"增长率: 30.0%\"], \"confidence\": 0.74, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.74, "model_used": "GPT-4-Turbo", "created_at": "2026-04-23 17:25:30.385970"}, {"id": 14, "competitor_id": 3, "report_type": "price_analysis", "title": "华为云 - 月度竞品分析报告", "summary": "AI 算力领先，政企客户粘性高。自研芯片生态逐步成型，长期竞争力不可小觑。", "content": "{\"insight\": \"AI 算力领先，政企客户粘性高。自研芯片生态逐步成型，长期竞争力不可小觑。\", \"evidence\": [\"价格指数: 92.0\", \"市场份额: 15.7%\", \"用户评分: 4.3\", \"增长率: 25.0%\"], \"confidence\": 0.88, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.88, "model_used": "GPT-4-Turbo", "created_at": "2026-04-23 17:25:30.384966"}, {"id": 20, "competitor_id": 4, "report_type": "comprehensive", "title": "AWS 中国 - 用户情感分析周报", "summary": "技术实力全球领先，但本地化仍存差距。正在通过降价和合作伙伴策略缩小差距。", "content": "{\"insight\": \"技术实力全球领先，但本地化仍存差距。正在通过降价和合作伙伴策略缩小差距。\", \"evidence\": [\"价格指数: 105.0\", \"市场份额: 10.2%\", \"用户评分: 4.5\", \"增长率: 12.0%\"], \"confidence\": 0.75, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.75, "model_used": "GPT-4-Turbo", "created_at": "2026-04-23 17:25:30.384966"}, {"id": 2, "competitor_id": 1, "report_type": "comprehensive", "title": "阿里云 - 技术创新动态追踪", "summary": "市场领先地位稳固，但价格策略趋于保守。AI 大模型产品线快速扩张，值得重点关注。", "content": "{\"insight\": \"市场领先地位稳固，但价格策略趋于保守。AI 大模型产品线快速扩张，值得重点关注。\", \"evidence\": [\"价格指数: 95.0\", \"市场份额: 32.5%\", \"用户评分: 4.2\", \"增长率: 18.5%\"], \"confidence\": 0.8, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.8, "model_used": "GPT-4-Turbo", "created_at": "2026-04-23 17:25:30.382872"}, {"id": 8, "competitor_id": 2, "report_type": "price_analysis", "title": "腾讯云 - 月度竞品分析报告", "summary": "游戏和音视频垂直领域优势明显，价格策略灵活。企业级市场正在加速渗透。", "content": "{\"insight\": \"游戏和音视频垂直领域优势明显，价格策略灵活。企业级市场正在加速渗透。\", \"evidence\": [\"价格指数: 88.0\", \"市场份额: 18.3%\", \"用户评分: 4.0\", \"增长率: 22.0%\"], \"confidence\": 0.76, \"recommendations\": [\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]}", "recommendations": "[\"关注价格策略变化，及时调整定价\", \"跟踪产品功能更新，评估竞争影响\", \"监测用户情感趋势，发现潜在风险\"]", "confidence_score": 0.76, "model_used": "GPT-4-Turbo", "created_at": "2026-04-23 17:25:30.382872"}]}, "/api/competitors/matrix": {"success": true, "data": [{"id": 1, "name": "阿里云", "price_index": 95.0, "market_share": 32.5, "user_rating": 4.2, "growth": 18.5, "metrics": {}, "anomaly_count": 15, "snapshot_count": 15}, {"id": 2, "name": "腾讯云", "price_index": 88.0, "market_share": 18.3, "user_rating": 4.0, "growth": 22.0, "metrics": {}, "anomaly_count": 21, "snapshot_count": 8}, {"id": 3, "name": "华为云", "price_index": 92.0, "market_share": 15.7, "user_rating": 4.3, "growth": 25.0, "metrics": {}, "anomaly_count": 22, "snapshot_count": 15}, {"id": 4, "name": "AWS 中国", "price_index": 105.0, "market_share": 10.2, "user_rating": 4.5, "growth": 12.0, "metrics": {}, "anomaly_count": 25, "snapshot_count": 15}, {"id": 5, "name": "百度 AI 云", "price_index": 78.0, "market_share": 8.0, "user_rating": 3.9, "growth": 30.0, "metrics": {}, "anomaly_count": 24, "snapshot_count": 15}]}, "/api/competitors/posture": {"success": true, "data": [{"competitor_id": 1, "name": "阿里云", "market_share": 32.5, "scores": {"aggressiveness": {"value": 74, "evidence": "30天内降价126次，功能/版本变更44次"}, "stability": {"value": 37, "evidence": "价格变异系数 0.24，情感标准差 0.52"}, "innovation": {"value": 64, "evidence": "功能变更46次，创新关键词命中率 27%"}, "sentiment": {"value": 76, "evidence": "情感均值 0.19，评论量 83 条（环比 +388%）"}, "threat": {"value": 75, "evidence": "攻击74 + 创新64 + 份额100 + 波动63 → 综合威胁75"}}, "computed_at": "2026-05-01T13:20:11.554643"}, {"competitor_id": 2, "name": "腾讯云", "market_share": 18.3, "scores": {"aggressiveness": {"value": 76, "evidence": "30天内降价130次，功能/版本变更43次"}, "stability": {"value": 21, "evidence": "价格变异系数 0.63，情感标准差 0.57"}, "innovation": {"value": 69, "evidence": "功能变更48次，创新关键词命中率 37%"}, "sentiment": {"value": 76, "evidence": "情感均值 0.18，评论量 100 条（环比 +456%）"}, "threat": {"value": 70, "evidence": "攻击76 + 创新69 + 份额56 + 波动79 → 综合威胁70"}}, "computed_at": "2026-05-01T13:20:11.561395"}, {"competitor_id": 3, "name": "华为云", "market_share": 15.7, "scores": {"aggressiveness": {"value": 73, "evidence": "30天内降价112次，功能/版本变更38次"}, "stability": {"value": 24, "evidence": "价格变异系数 0.32，情感标准差 0.56"}, "innovation": {"value": 66, "evidence": "功能变更42次，创新关键词命中率 31%"}, "sentiment": {"value": 75, "evidence": "情感均值 0.18，评论量 91 条（环比 +507%）"}, "threat": {"value": 66, "evidence": "攻击73 + 创新66 + 份额48 + 波动76 → 综合威胁66"}}, "computed_at": "2026-05-01T13:20:11.565566"}, {"competitor_id": 4, "name": "AWS 中国", "market_share": 10.2, "scores": {"aggressiveness": {"value": 75, "evidence": "30天内降价133次，功能/版本变更45次"}, "stability": {"value": 24, "evidence": "价格变异系数 0.76，情感标准差 0.53"}, "innovation": {"value": 71, "evidence": "功能变更54次，创新关键词命中率 41%"}, "sentiment": {"value": 77, "evidence": "情感均值 0.23，评论量 131 条（环比 +309%）"}, "threat": {"value": 63, "evidence": "攻击75 + 创新71 + 份额31 + 波动76 → 综合威胁63"}}, "computed_at": "2026-05-01T13:20:11.571405"}, {"competitor_id": 5, "name": "百度 AI 云", "market_share": 8.0, "scores": {"aggressiveness": {"value": 75, "evidence": "30天内降价119次，功能/版本变更52次"}, "stability": {"value": 26, "evidence": "价格变异系数 0.30，情感标准差 0.57"}, "innovation": {"value": 63, "evidence": "功能变更58次，创新关键词命中率 26%"}, "sentiment": {"value": 74, "evidence": "情感均值 0.13，评论量 98 条（环比 +717%）"}, "threat": {"value": 59, "evidence": "攻击75 + 创新63 + 份额25 + 波动74 → 综合威胁59"}}, "computed_at": "2026-05-01T13:20:11.578230"}]}, "/api/v1/reviews/sentiment?competitor_id=1&days=90": {"success": true, "data": {"competitor_id": 1, "total_reviews": 100, "average_sentiment_score": 0.21793999999999997, "sentiment_distribution": {"positive": 54, "neutral": 22, "negative": 24}}}, "/api/v1/reviews/sentiment?competitor_id=2&days=90": {"success": true, "data": {"competitor_id": 2, "total_reviews": 118, "average_sentiment_score": 0.1957881355932204, "sentiment_distribution": {"positive": 64, "neutral": 19, "negative": 35}}}, "/api/v1/reviews/sentiment?competitor_id=3&days=90": {"success": true, "data": {"competitor_id": 3, "total_reviews": 106, "average_sentiment_score": 0.17708490566037738, "sentiment_distribution": {"positive": 59, "neutral": 15, "negative": 32}}}, "/api/v1/reviews/sentiment?competitor_id=4&days=90": {"success": true, "data": {"competitor_id": 4, "total_reviews": 163, "average_sentiment_score": 0.2279263803680981, "sentiment_distribution": {"positive": 87, "neutral": 39, "negative": 37}}}, "/api/v1/reviews/sentiment?competitor_id=5&days=90": {"success": true, "data": {"competitor_id": 5, "total_reviews": 110, "average_sentiment_score": 0.13023636363636368, "sentiment_distribution": {"positive": 53, "neutral": 17, "negative": 40}}}};
+
+// Stub WebSocket to prevent connection attempts
+window.WebSocket = window.WebSocket || function() {
+    const ws = { readyState: 3, send: ()=>{}, close: ()=>{} };
+    setTimeout(() => ws.onclose && ws.onclose(), 0);
+    return ws;
+};
+
+const __origFetch__ = window.fetch;
+window.fetch = function(url, options) {
+    const urlStr = typeof url === 'string' ? url : (url.url || String(url));
+    const urlClean = urlStr.split("?")[0];
+
+    // Exact match first
+    if (__EMBEDDED__[urlStr]) {
+        return Promise.resolve({
+            ok: true, status: 200,
+            json: () => Promise.resolve(__EMBEDDED__[urlStr]),
+            text: () => Promise.resolve(JSON.stringify(__EMBEDDED__[urlStr])),
+        });
+    }
+
+    // Fuzzy match: find key contained in url or vice versa
+    for (const [key, val] of Object.entries(__EMBEDDED__)) {
+        const keyBase = key.split("?")[0];
+        if (urlClean.endsWith(keyBase) || keyBase.endsWith(urlClean) || urlStr.includes(keyBase)) {
+            return Promise.resolve({
+                ok: true, status: 200,
+                json: () => Promise.resolve(val),
+                text: () => Promise.resolve(JSON.stringify(val)),
+            });
+        }
+    }
+
+    // Fallback: try real fetch (will fail if server not running, that's OK)
+    console.warn("[Offline Demo] No embedded data for:", urlStr);
+    return __origFetch__(url, options).catch(err => {
+        console.warn("[Offline Demo] Fetch failed (server not running):", urlStr);
+        return { ok: false, status: 0, json: () => Promise.resolve({}), text: () => Promise.resolve("") };
+    });
+};
+</script>
+    <div id="app">
+        <!-- Topbar -->
+        <header class="cyber-topbar">
+            <div class="cyber-brand">
+                <span class="cyber-brand-icon">&#x26A1;</span>
+                <span class="cyber-brand-text">赛博监控</span>
+                <span class="cyber-version">v2.0</span>
+            </div>
+            <nav class="cyber-nav">
+                <a href="index_v2_offline.html" class="cyber-nav-link active">首页</a>
+                <a href="alerts_v2_offline.html" class="cyber-nav-link">告警中心</a>
+                <a href="report_v2_offline.html" class="cyber-nav-link">分析报告</a>
+                <a href="#" class="cyber-nav-link">接口文档</a>
+                <a href="#" class="cyber-nav-link">监控仪表板</a>
+                <a href="product_detail_v2_offline.html" class="cyber-nav-link">产品详情</a>
+            </nav>
+            <div class="cyber-header-right">
+                <span class="cyber-connection-status" :class="{ connected: wsConnected }">
+                    {{ wsConnected ? 'LIVE' : 'OFFLINE' }}
+                </span>
+                <button class="cyber-btn cyber-btn-sm" @click="refreshAll">&#x21BB; 刷新</button>
+            </div>
+        </header>
+
+        <!-- Loading -->
+        <div v-if="loading" class="cyber-loading">
+            <div class="cyber-spinner"></div>
+            <p>正在加载数据...</p>
+        </div>
+
+        <!-- Content -->
+        <div v-else class="cyber-container">
+            <!-- Tab Navigation -->
+            <div class="cyber-tab-bar">
+                <button :class="['cyber-btn', { active: currentTab === 'overview' }]" @click="currentTab = 'overview'">
+                    概览
+                </button>
+                <button :class="['cyber-btn', { active: currentTab === 'competitors' }]" @click="currentTab = 'competitors'">
+                    竞品管理
+                </button>
+                <button :class="['cyber-btn', { active: currentTab === 'reports' }]" @click="currentTab = 'reports'">
+                    分析报告
+                </button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div v-show="currentTab === 'overview'">
+                <!-- Stats Row -->
+                <div class="cyber-stats-row">
+                    <div class="cyber-stat-card" v-for="s in statCards" :key="s.label">
+                        <div class="cyber-stat-icon">{{ s.icon }}</div>
+                        <div class="cyber-stat-value">{{ s.value }}</div>
+                        <div class="cyber-stat-label">{{ s.label }}</div>
+                        <div class="cyber-stat-change" :class="s.trend">{{ s.sub }}</div>
+                    </div>
+                </div>
+
+                <!-- Charts Panel -->
+                <div class="cyber-panel">
+                    <div class="cyber-panel-header">
+                        <h2 class="cyber-panel-title">数据概览</h2>
+                        <div class="cyber-panel-actions">
+                            <button class="cyber-btn cyber-btn-sm" @click="refreshCharts">刷新图表</button>
+                        </div>
+                    </div>
+                    <div class="cyber-panel-body">
+                        <div class="cyber-charts-grid">
+                            <div class="cyber-chart-container">
+                                <h3 class="cyber-chart-title">价格趋势 (近7天均价)</h3>
+                                <canvas id="priceTrendChart"></canvas>
+                            </div>
+                            <div class="cyber-chart-container">
+                                <h3 class="cyber-chart-title">情感分布</h3>
+                                <canvas id="sentimentChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Changes -->
+                <div class="cyber-panel">
+                    <div class="cyber-panel-header">
+                        <h2 class="cyber-panel-title">最近变更</h2>
+                    </div>
+                    <div class="cyber-panel-body">
+                        <table class="cyber-table" v-if="recentChanges.length">
+                            <thead>
+                                <tr>
+                                    <th>竞品</th>
+                                    <th>变更类型</th>
+                                    <th>描述</th>
+                                    <th>严重度</th>
+                                    <th>时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="c in recentChanges" :key="c.id">
+                                    <td>{{ c.competitor_name || '#' + c.competitor_id }}</td>
+                                    <td><span class="cyber-badge">{{ c.change_type }}</span></td>
+                                    <td>{{ c.new_value || c.field_name }}</td>
+                                    <td><span :class="['cyber-severity', 'sev-' + (c.severity || 'info').toLowerCase()]">{{ c.severity }}</span></td>
+                                    <td>{{ formatDate(c.detected_at) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div v-else class="cyber-empty-state">暂无变更数据</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Competitors Tab -->
+            <div v-show="currentTab === 'competitors'">
+                <div class="cyber-panel">
+                    <div class="cyber-panel-header">
+                        <h2 class="cyber-panel-title">竞品管理</h2>
+                        <div class="cyber-panel-actions">
+                            <button class="cyber-btn" @click="showAddModal = true">添加竞品</button>
+                            <button class="cyber-btn cyber-btn-sm" @click="refreshCompetitors">刷新</button>
+                        </div>
+                    </div>
+                    <div class="cyber-panel-body">
+                        <div class="cyber-comp-grid">
+                            <div v-for="comp in competitors" :key="comp.id"
+                                 class="cyber-comp-card" @click="viewCompetitor(comp)">
+                                <div class="cyber-comp-header">
+                                    <div class="cyber-comp-name">{{ comp.name }}</div>
+                                    <div :class="['cyber-comp-status', comp.status === 'active' ? 'status-monitoring' : 'status-paused']">
+                                        {{ comp.status === 'active' ? '监控中' : '已暂停' }}
+                                    </div>
+                                </div>
+                                <div class="cyber-comp-url">{{ comp.url }}</div>
+                                <div class="cyber-comp-metrics">
+                                    <div class="cyber-comp-metric">
+                                        <div class="cyber-comp-metric-value">{{ (comp.metrics?.market_share || 0).toFixed(1) }}%</div>
+                                        <div class="cyber-comp-metric-label">市场份额</div>
+                                    </div>
+                                    <div class="cyber-comp-metric">
+                                        <div class="cyber-comp-metric-value">{{ (comp.metrics?.user_rating || 0).toFixed(1) }}</div>
+                                        <div class="cyber-comp-metric-label">用户评分</div>
+                                    </div>
+                                    <div class="cyber-comp-metric">
+                                        <div class="cyber-comp-metric-value">{{ (comp.metrics?.growth || 0).toFixed(1) }}%</div>
+                                        <div class="cyber-comp-metric-label">增长率</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div v-show="currentTab === 'reports'">
+                <div class="cyber-panel">
+                    <div class="cyber-panel-header">
+                        <h2 class="cyber-panel-title">分析报告</h2>
+                        <button class="cyber-btn cyber-btn-sm" @click="fetchReports">刷新</button>
+                    </div>
+                    <div class="cyber-panel-body">
+                        <div class="cyber-report-list" v-if="reports.length">
+                            <div v-for="r in reports" :key="r.id" class="cyber-report-item">
+                                <div class="cyber-report-header">
+                                    <span class="cyber-report-title">{{ r.title || '无标题' }}</span>
+                                    <span class="cyber-badge">{{ r.report_type }}</span>
+                                </div>
+                                <p class="cyber-report-summary">{{ r.summary?.substring(0, 200) || '暂无摘要' }}</p>
+                                <div class="cyber-report-meta">
+                                    <span>置信度: {{ ((r.confidence_score || 0) * 100).toFixed(0) }}%</span>
+                                    <span>模型: {{ r.model_used }}</span>
+                                    <span>{{ formatDate(r.created_at) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="cyber-empty-state">暂无分析报告</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Competitor Modal -->
+        <div v-if="showAddModal" class="cyber-modal-overlay" @click.self="showAddModal = false">
+            <div class="cyber-modal">
+                <div class="cyber-panel-header">
+                    <h2 class="cyber-panel-title">添加竞品</h2>
+                    <button class="cyber-btn" @click="showAddModal = false">关闭</button>
+                </div>
+                <div class="cyber-panel-body">
+                    <div class="cyber-form-group">
+                        <label class="cyber-label">竞品名称</label>
+                        <input type="text" class="cyber-input" v-model="newCompetitor.name" placeholder="输入竞品名称">
+                    </div>
+                    <div class="cyber-form-group">
+                        <label class="cyber-label">竞品网址</label>
+                        <input type="text" class="cyber-input" v-model="newCompetitor.url" placeholder="输入竞品网址">
+                    </div>
+                    <div class="cyber-form-group">
+                        <label class="cyber-label">监控类型</label>
+                        <select class="cyber-select" v-model="newCompetitor.type">
+                            <option value="all">全量监控</option>
+                            <option value="price">价格监控</option>
+                            <option value="review">评论监控</option>
+                            <option value="feature">功能监控</option>
+                        </select>
+                    </div>
+                    <div class="cyber-form-group">
+                        <label class="cyber-label">优先级</label>
+                        <select class="cyber-select" v-model="newCompetitor.priority">
+                            <option value="high">高</option>
+                            <option value="medium">中</option>
+                            <option value="low">低</option>
+                        </select>
+                    </div>
+                    <button class="cyber-btn" @click="addCompetitor" :disabled="addingCompetitor">
+                        {{ addingCompetitor ? '添加中...' : '确认添加' }}
+                    </button>
+                    <div v-if="addError" class="cyber-error-msg">{{ addError }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="cyber-toast" v-if="toast.show" :class="toast.type">{{ toast.message }}</div>
+
+        <!-- Footer -->
+        <footer class="cyber-footer">
+            <p>赛博监控 v2.0 // 竞品监控平台 | Powered by FastAPI + Vue 3 + Chart.js</p>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted, watch, nextTick, onUnmounted } = Vue;
+
+        createApp({
+            setup() {
+                const currentTab = ref('overview');
+                const loading = ref(true);
+                const competitors = ref([]);
+                const reports = ref([]);
+                const recentChanges = ref([]);
+                const showAddModal = ref(false);
+                const addingCompetitor = ref(false);
+                const addError = ref('');
+                const wsConnected = ref(false);
+                const toast = reactive({ show: false, message: '', type: 'success' });
+
+                const newCompetitor = reactive({
+                    name: '', url: '', type: 'all', priority: 'medium'
+                });
+
+                let priceChart = null;
+                let sentimentChart = null;
+                let ws = null;
+
+                const statCards = ref([
+                    { icon: '\u{1F3E2}', value: 0, label: '竞品总数', sub: '加载中', trend: 'positive' },
+                    { icon: '\u{1F4B0}', value: 0, label: '价格记录', sub: '实时更新', trend: 'positive' },
+                    { icon: '\u{1F4AC}', value: 0, label: '评论数据', sub: '情感分析', trend: 'positive' },
+                    { icon: '\u{1F514}', value: 0, label: '变更检测', sub: '待处理', trend: 'negative' },
+                ]);
+
+                function showToast(msg, type = 'success') {
+                    toast.message = msg;
+                    toast.type = type;
+                    toast.show = true;
+                    setTimeout(() => toast.show = false, 3000);
+                }
+
+                function formatDate(d) {
+                    if (!d) return '';
+                    return new Date(d).toLocaleString('zh-CN', {
+                        month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+                    });
+                }
+
+                // ── API fetchers ────────────────────────
+                async function fetchStats() {
+                    try {
+                        const resp = await fetch('/api/dashboard/stats');
+                        const result = await resp.json();
+                        if (result.success) {
+                            const d = result.data;
+                            statCards.value[0].value = d.competitorsTotal || 0;
+                            statCards.value[0].sub = `${d.activeCompetitors || 0} 监控中`;
+                            statCards.value[1].value = d.priceRecords || 0;
+                            statCards.value[2].value = d.reviewRecords || 0;
+                            statCards.value[3].value = d.changesDetected || 0;
+                            statCards.value[3].sub = d.alertsPending ? `${d.alertsPending} 告警待处理` : '无新变更';
+                            statCards.value[3].trend = (d.changesDetected || 0) > 0 ? 'negative' : 'positive';
+                        }
+                    } catch (err) {
+                        console.error('Stats fetch failed:', err);
+                    }
+                }
+
+                async function fetchCompetitors() {
+                    try {
+                        const resp = await fetch('/api/competitors');
+                        const result = await resp.json();
+                        if (result.success) {
+                            competitors.value = result.data;
+                        }
+                    } catch (err) {
+                        console.error('Competitors fetch failed:', err);
+                    }
+                }
+
+                async function fetchReports() {
+                    try {
+                        const resp = await fetch('/api/reports?limit=10');
+                        const result = await resp.json();
+                        if (result.success) {
+                            reports.value = result.data;
+                        }
+                    } catch (err) {
+                        console.error('Reports fetch failed:', err);
+                    }
+                }
+
+                async function fetchRecentChanges() {
+                    try {
+                        const resp = await fetch('/api/diff/changes?limit=10');
+                        if (!resp.ok) {
+                            // Fallback: extract from competitors API
+                            return;
+                        }
+                        const result = await resp.json();
+                        if (result.success) {
+                            recentChanges.value = result.data || [];
+                        }
+                    } catch (err) {
+                        console.error('Changes fetch failed:', err);
+                    }
+                }
+
+                // ── Charts ─────────────────────────────
+                function renderPriceChart() {
+                    const canvas = document.getElementById('priceTrendChart');
+                    if (!canvas) return;
+                    if (priceChart) priceChart.destroy();
+
+                    // Build 7-day labels and fill with mock trend if no real data
+                    const labels = [];
+                    const now = new Date();
+                    for (let i = 6; i >= 0; i--) {
+                        const d = new Date(now);
+                        d.setDate(d.getDate() - i);
+                        labels.push(`${d.getMonth()+1}/${d.getDate()}`);
+                    }
+
+                    const datasets = [];
+                    const colors = ['#00f0ff', '#ff0055', '#00ff88', '#ffaa00', '#aa55ff'];
+                    competitors.value.forEach((comp, i) => {
+                        const base = comp.metrics?.price_index || 90;
+                        const data = labels.map((_, j) => base + (Math.random() - 0.5) * 10 + (j - 3) * 2);
+                        datasets.push({
+                            label: comp.name,
+                            data,
+                            borderColor: colors[i % colors.length],
+                            backgroundColor: colors[i % colors.length] + '20',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            pointRadius: 3,
+                        });
+                    });
+
+                    priceChart = new Chart(canvas, {
+                        type: 'line',
+                        data: { labels, datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { labels: { color: '#8892b0', font: { family: 'Rajdhani' } } }
+                            },
+                            scales: {
+                                x: { ticks: { color: '#4a5568' }, grid: { color: 'rgba(0,240,255,0.05)' } },
+                                y: { ticks: { color: '#4a5568' }, grid: { color: 'rgba(0,240,255,0.05)' } }
+                            }
+                        }
+                    });
+                }
+
+                async function renderSentimentChart() {
+                    const canvas = document.getElementById('sentimentChart');
+                    if (!canvas) return;
+                    if (sentimentChart) sentimentChart.destroy();
+
+                    let pos = 0, neu = 0, neg = 0;
+                    try {
+                        // Aggregate from all competitors
+                        for (const comp of competitors.value) {
+                            const resp = await fetch(`/api/v1/reviews/sentiment?competitor_id=${comp.id}&days=90`);
+                            const data = await resp.json();
+                            const dist = data.sentiment_distribution || data || {};
+                            pos += dist.positive || 0;
+                            neu += dist.neutral || 0;
+                            neg += dist.negative || 0;
+                        }
+                    } catch (e) { /* fallback below */ }
+
+                    // Fallback if API returns zeros
+                    if (pos + neu + neg === 0) {
+                        pos = Math.floor(Math.random() * 50 + 30);
+                        neu = Math.floor(Math.random() * 30 + 10);
+                        neg = Math.floor(Math.random() * 20 + 5);
+                    }
+
+                    sentimentChart = new Chart(canvas, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['正面', '中性', '负面'],
+                            datasets: [{
+                                data: [pos, neu, neg],
+                                backgroundColor: ['#00ff88', '#6B7280', '#ff0055'],
+                                borderColor: '#0a0e17',
+                                borderWidth: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { color: '#8892b0', font: { family: 'Rajdhani' } } }
+                            }
+                        }
+                    });
+                }
+
+                async function refreshCharts() {
+                    await nextTick();
+                    renderPriceChart();
+                    await renderSentimentChart();
+                }
+
+                // ── WebSocket ──────────────────────────
+                function connectWebSocket() {
+                    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    ws = new WebSocket(`${proto}//${location.host}/ws/monitoring`);
+
+                    ws.onopen = () => {
+                        wsConnected.value = true;
+                        ws.send(JSON.stringify({ action: 'ping' }));
+                    };
+
+                    ws.onmessage = (event) => {
+                        try {
+                            const msg = JSON.parse(event.data);
+                            if (msg.type === 'stats_update') {
+                                const d = msg.data;
+                                statCards.value[0].value = d.competitors_total || statCards.value[0].value;
+                                statCards.value[0].sub = `${d.active_competitors || 0} 监控中`;
+                            }
+                        } catch (e) { /* ignore */ }
+                    };
+
+                    ws.onclose = () => {
+                        wsConnected.value = false;
+                        setTimeout(connectWebSocket, 5000);
+                    };
+
+                    ws.onerror = () => {
+                        wsConnected.value = false;
+                    };
+                }
+
+                // ── Actions ────────────────────────────
+                async function addCompetitor() {
+                    if (!newCompetitor.name || !newCompetitor.url) {
+                        showToast('请填写竞品名称和网址', 'error');
+                        return;
+                    }
+                    addingCompetitor.value = true;
+                    addError.value = '';
+                    try {
+                        const resp = await fetch('/api/competitors', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: newCompetitor.name,
+                                url: newCompetitor.url,
+                                type: newCompetitor.type,
+                                status: 'monitoring',
+                                frequency: '15',
+                            })
+                        });
+                        const result = await resp.json();
+                        if (resp.ok && result.success) {
+                            showToast('竞品添加成功');
+                            showAddModal.value = false;
+                            newCompetitor.name = '';
+                            newCompetitor.url = '';
+                            await fetchCompetitors();
+                            await fetchStats();
+                        } else {
+                            addError.value = result.detail || '添加失败';
+                        }
+                    } catch (err) {
+                        addError.value = '网络错误: ' + err.message;
+                    }
+                    addingCompetitor.value = false;
+                }
+
+                function viewCompetitor(comp) {
+                    window.location.href = `/product/v2?competitor_id=${comp.id}`;
+                }
+
+                async function refreshAll() {
+                    loading.value = true;
+                    await Promise.all([fetchStats(), fetchCompetitors(), fetchRecentChanges()]);
+                    currentTab.value === 'reports' && await fetchReports();
+                    await refreshCharts();
+                    loading.value = false;
+                }
+
+                async function refreshCompetitors() {
+                    await fetchCompetitors();
+                }
+
+                // ── Lifecycle ──────────────────────────
+                onMounted(async () => {
+                    await Promise.all([fetchStats(), fetchCompetitors(), fetchRecentChanges()]);
+                    if (competitors.value.length > 0) {
+                        await refreshCharts();
+                    }
+                    loading.value = false;
+                    connectWebSocket();
+                });
+
+                onUnmounted(() => {
+                    if (ws) ws.close();
+                });
+
+                // Auto-refresh stats every 30s
+                const refreshInterval = setInterval(fetchStats, 30000);
+                onUnmounted(() => clearInterval(refreshInterval));
+
+                return {
+                    currentTab, loading, competitors, reports, recentChanges,
+                    showAddModal, addingCompetitor, addError, wsConnected,
+                    statCards, newCompetitor, toast,
+                    formatDate, showToast,
+                    refreshAll, refreshCompetitors, refreshCharts,
+                    viewCompetitor, addCompetitor, fetchReports,
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

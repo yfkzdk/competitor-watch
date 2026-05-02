@@ -1,0 +1,109 @@
+# 企业软件监控模板
+version: "2.0"
+template_name: "企业软件监控"
+description: "适用于ERP、CRM、HR系统等企业软件的监控配置"
+
+default_settings:
+  monitoring_frequency: "weekly"
+  priority: "medium"
+  alert_level: "low"
+  report_format: "business_analysis"
+  notification_channels: ["email", "dashboard"]
+
+monitoring_targets:
+  competitors:
+    - name: "SAP"
+      domains:
+        - "https://www.sap.com"
+        - "https://help.sap.com"
+        - "https://developers.sap.com"
+        - "https://community.sap.com"
+      monitoring_frequency: "weekly"
+      priority: "high"
+      scrape_patterns:
+        - "release_updates"
+        - "pricing_changes"
+        - "partner_announcements"
+        - "customer_case_studies"
+        - "industry_solutions"
+
+    - name: "Oracle"
+      domains:
+        - "https://www.oracle.com"
+        - "https://docs.oracle.com"
+        - "https://community.oracle.com"
+      monitoring_frequency: "weekly"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "licensing_changes"
+        - "cloud_migration"
+        - "industry_focus"
+
+    - name: "Microsoft Dynamics"
+      domains:
+        - "https://dynamics.microsoft.com"
+        - "https://learn.microsoft.com/dynamics"
+        - "https://community.dynamics.com"
+      monitoring_frequency: "weekly"
+      priority: "medium"
+      scrape_patterns:
+        - "feature_releases"
+        - "integration_updates"
+        - "pricing_tiers"
+        - "implementation_guides"
+
+  industry_analysis:
+    sources:
+      - "https://www.gartner.com"
+      - "https://www.forrester.com"
+      - "https://www.idc.com"
+    frequency: "monthly"
+    categories:
+      - "market_share"
+      - "technology_quadrants"
+      - "customer_satisfaction"
+      - "future_trends"
+
+  regulatory_updates:
+    sources:
+      - "https://www.gov.cn"
+      - "https://ec.europa.eu"
+      - "https://www.sec.gov"
+    frequency: "monthly"
+    categories:
+      - "compliance_requirements"
+      - "data_regulations"
+      - "industry_standards"
+
+strategy_rules:
+  focus_areas:
+    - "enterprise_features"
+    - "compliance_capabilities"
+    - "integration_options"
+    - "total_cost_of_ownership"
+  analysis_method:
+    - "feature_comparison"
+    - "roi_analysis"
+    - "risk_assessment"
+    - "migration_path"
+
+analysis_dimensions:
+  enterprise_readiness: true
+  compliance_coverage: true
+  ecosystem_integration: true
+  total_cost_analysis: true
+
+output_formats:
+  - "enterprise_feature_matrix"
+  - "tco_comparison_report"
+  - "compliance_checklist"
+  - "migration_assessment"
+
+notes: |
+  企业软件监控特点：
+  1. 低频但深度监控（周/月级）
+  2. 关注合规性和企业特性
+  3. 分析总体拥有成本(TCO)
+  4. 跟踪行业报告和分析师评价
+  5. 监控法规和政策变化

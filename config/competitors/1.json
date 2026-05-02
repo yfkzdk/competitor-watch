@@ -1,0 +1,6 @@
+{
+  "monitoring": {
+    "timeout": 60,
+    "frequency": 30
+  }
+}

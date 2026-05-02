@@ -1,0 +1,99 @@
+# SaaS软件监控模板
+version: "2.0"
+template_name: "SaaS竞品监控"
+description: "适用于Salesforce、HubSpot、Zoho等SaaS软件的监控配置"
+
+default_settings:
+  monitoring_frequency: "daily"
+  priority: "medium"
+  alert_level: "low"
+  report_format: "product_team_report"
+  notification_channels: ["slack", "teams"]
+
+monitoring_targets:
+  competitors:
+    - name: "Salesforce"
+      domains:
+        - "https://www.salesforce.com"
+        - "https://help.salesforce.com"
+        - "https://developer.salesforce.com"
+        - "https://trailhead.salesforce.com"
+      monitoring_frequency: "daily"
+      priority: "high"
+      scrape_patterns:
+        - "release_notes"
+        - "product_updates"
+        - "pricing_changes"
+        - "api_changes"
+        - "certification_updates"
+
+    - name: "HubSpot"
+      domains:
+        - "https://www.hubspot.com"
+        - "https://knowledge.hubspot.com"
+        - "https://developers.hubspot.com"
+        - "https://community.hubspot.com"
+      monitoring_frequency: "daily"
+      priority: "medium"
+      scrape_patterns:
+        - "product_updates"
+        - "feature_launches"
+        - "integration_updates"
+        - "pricing_tiers"
+
+    - name: "Zoho"
+      domains:
+        - "https://www.zoho.com"
+        - "https://help.zoho.com"
+        - "https://www.zoho.com/developer"
+      monitoring_frequency: "weekly"
+      priority: "medium"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "regional_expansion"
+        - "partner_programs"
+
+  industry_news:
+    sources:
+      - "https://techcrunch.com/tag/saas/"
+      - "https://www.saastr.com/"
+      - "https://www.forbes.com/saas/"
+    frequency: "daily"
+    categories:
+      - "funding_rounds"
+      - "customer_stories"
+      - "marketplace_updates"
+      - "integration_announcements"
+
+strategy_rules:
+  focus_areas:
+    - "feature_comparison"
+    - "pricing_strategy"
+    - "integration_ecosystem"
+    - "customer_success"
+  analysis_depth: "detailed"
+  comparison_metrics:
+    - "feature_parity"
+    - "price_per_user"
+    - "api_capabilities"
+    - "support_options"
+
+analysis_dimensions:
+  feature_analysis: true
+  pricing_strategy: true
+  market_position: true
+  customer_feedback: true
+
+output_formats:
+  - "feature_comparison_matrix"
+  - "pricing_analysis_report"
+  - "integration_ecosystem_map"
+  - "competitive_gap_analysis"
+
+notes: |
+  SaaS软件监控重点：
+  1. 功能对比和差距分析
+  2. 定价策略和包对比
+  3. 集成生态系统分析
+  4. 客户评价和案例研究

@@ -1,0 +1,95 @@
+# 云计算厂商监控模板
+version: "2.0"
+template_name: "云计算厂商监控"
+description: "适用于阿里云、腾讯云、华为云等云计算厂商的监控配置"
+
+default_settings:
+  monitoring_frequency: "daily"
+  priority: "high"
+  alert_level: "medium"
+  report_format: "executive_summary"
+  notification_channels: ["email", "slack"]
+
+monitoring_targets:
+  competitors:
+    - name: "阿里云"
+      domains:
+        - "https://www.aliyun.com"
+        - "https://help.aliyun.com"
+        - "https://developer.aliyun.com"
+        - "https://academy.aliyun.com"
+      monitoring_frequency: "hourly"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "api_changes"
+        - "documentation_updates"
+        - "training_materials"
+
+    - name: "腾讯云"
+      domains:
+        - "https://cloud.tencent.com"
+        - "https://cloud.tencent.com/document"
+        - "https://cloud.tencent.com/developer"
+      monitoring_frequency: "hourly"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "pricing_changes"
+        - "promotion_activities"
+        - "case_studies"
+
+    - name: "华为云"
+      domains:
+        - "https://www.huaweicloud.com"
+        - "https://support.huaweicloud.com"
+        - "https://developer.huaweicloud.com"
+      monitoring_frequency: "daily"
+      priority: "high"
+      scrape_patterns:
+        - "product_updates"
+        - "solution_updates"
+        - "partnership_announcements"
+        - "industry_reports"
+
+  industry_news:
+    sources:
+      - "https://techcrunch.com/tag/cloud-computing/"
+      - "https://venturebeat.com/cloud/"
+      - "https://www.forbes.com/cloud/"
+    frequency: "twice_daily"
+    categories:
+      - "market_analysis"
+      - "product_launches"
+      - "mergers_acquisitions"
+      - "regulatory_changes"
+
+strategy_rules:
+  high_priority_targets:
+    - "阿里云"
+    - "腾讯云"
+    - "华为云"
+  alert_thresholds:
+    price_change: 10  # 价格变化超过10%触发警报
+    feature_launch: "major"  # 主要功能发布触发警报
+    hiring_spike: 5  # 单日招聘超过5个岗位触发警报
+
+analysis_dimensions:
+  pricing_analysis: true
+  product_velocity: true
+  hiring_trends: true
+  market_positioning: true
+
+output_formats:
+  - "daily_summary"
+  - "weekly_trend_report"
+  - "monthly_competitive_analysis"
+  - "real_time_alerts"
+
+notes: |
+  此模板针对云计算厂商特点优化：
+  1. 高频监控产品页面和价格变化
+  2. 关注API和技术文档更新
+  3. 分析行业新闻和市场趋势
+  4. 提供详细的竞争态势分析

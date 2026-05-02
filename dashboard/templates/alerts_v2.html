@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>告警中心 // 赛博监控</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/cyberpunk.css">
+    <style>
+        :root {
+            --bg-void: #0a0a0f; --bg-panel: #0d0d18; --border-dim: #1a1a3e;
+            --neon-cyan: #00fff0; --neon-magenta: #ff2a6d; --neon-green: #05ffa1;
+            --neon-amber: #f0e000; --text-primary: #e0e0ff; --text-dim: #6a6a8e;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--bg-void); color:var(--text-primary); font-family:'Rajdhani','Microsoft YaHei',sans-serif; }
+        .container { max-width:1200px; margin:0 auto; padding:20px; }
+
+        .page-header { display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:2px solid var(--border-dim); margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+        .page-header h1 { font-family:'JetBrains Mono',monospace; font-size:24px; color:var(--neon-cyan); letter-spacing:3px; }
+        .nav-links { display:flex; gap:16px; }
+        .nav-links a { color:var(--text-dim); text-decoration:none; font-family:'JetBrains Mono',monospace; font-size:12px; transition:color .2s; }
+        .nav-links a:hover { color:var(--neon-cyan); }
+
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:24px; }
+        .stat-card { background:var(--bg-panel); border:1px solid var(--border-dim); padding:16px; text-align:center; transition:border-color .3s; }
+        .stat-card:hover { border-color:rgba(0,255,240,.3); }
+        .stat-value { font-family:'JetBrains Mono',monospace; font-size:32px; font-weight:700; }
+        .stat-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:2px; margin-top:4px; text-transform:uppercase; }
+        .stat-card.p0 .stat-value { color:var(--neon-magenta); }
+        .stat-card.p1 .stat-value { color:var(--neon-amber); }
+        .stat-card.p2 .stat-value { color:var(--neon-cyan); }
+        .stat-card.pending .stat-value { color:var(--neon-magenta); animation:pulse 1s ease-in-out infinite; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+
+        .panel { background:var(--bg-panel); border:1px solid var(--border-dim); margin-bottom:16px; }
+        .panel-header { padding:14px 18px; border-bottom:1px solid var(--border-dim); display:flex; align-items:center; justify-content:space-between; }
+        .panel-title { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--neon-cyan); letter-spacing:2px; }
+        .panel-body { padding:16px 18px; }
+
+        .alert-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(26,26,62,.3); font-family:'JetBrains Mono',monospace; font-size:11px; transition:background .15s; }
+        .alert-row:hover { background:rgba(0,255,240,.02); }
+        .alert-row.pending { border-left:3px solid var(--neon-magenta); padding-left:12px; }
+        .severity-badge { padding:2px 8px; border-radius:2px; font-size:10px; font-weight:600; letter-spacing:1px; }
+        .severity-badge.P0, .severity-badge.critical { color:var(--neon-magenta); border:1px solid var(--neon-magenta); background:rgba(255,42,109,.1); }
+        .severity-badge.P1, .severity-badge.warning { color:var(--neon-amber); border:1px solid var(--neon-amber); background:rgba(240,224,0,.1); }
+        .severity-badge.P2, .severity-badge.info { color:var(--neon-cyan); border:1px solid var(--neon-cyan); background:rgba(0,255,240,.06); }
+        .alert-time { color:var(--text-dim); min-width:100px; }
+        .alert-comp { color:var(--text-data); min-width:80px; }
+        .alert-msg { flex:1; color:var(--text-primary); }
+        .ack-btn { font-family:'JetBrains Mono',monospace; font-size:9px; padding:3px 10px; background:transparent; color:var(--neon-green); border:1px solid var(--neon-green); cursor:pointer; transition:all .2s; }
+        .ack-btn:hover { background:rgba(5,255,161,.1); }
+
+        .rules-table { width:100%; border-collapse:collapse; font-family:'JetBrains Mono',monospace; font-size:11px; }
+        .rules-table th { text-align:left; padding:8px 12px; color:var(--text-dim); border-bottom:1px solid var(--border-dim); letter-spacing:1px; font-size:10px; }
+        .rules-table td { padding:8px 12px; border-bottom:1px solid rgba(26,26,62,.2); }
+        .toggle { width:32px; height:18px; border-radius:9px; position:relative; cursor:pointer; transition:background .3s; display:inline-block; }
+        .toggle.on { background:var(--neon-green); }
+        .toggle.off { background:var(--text-dim); }
+        .toggle::after { content:''; position:absolute; top:2px; width:14px; height:14px; border-radius:50%; background:var(--bg-void); transition:left .3s; }
+        .toggle.on::after { left:16px; }
+        .toggle.off::after { left:2px; }
+
+        .empty-state { text-align:center; padding:40px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; font-size:12px; }
+
+        .refresh-bar { display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim); }
+        .refresh-bar .dot { width:5px; height:5px; border-radius:50%; }
+        .refresh-bar .dot.live { background:var(--neon-green); animation:pulse 1s infinite; }
+    </style>
+</head>
+<body>
+<div id="alerts-app">
+    <div class="container">
+        <!-- Header -->
+        <header class="page-header">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <h1>告警中心</h1>
+                <div class="refresh-bar">
+                    <span class="dot" :class="{ live: autoRefresh }"></span>
+                    <span>{{ autoRefresh ? '实时' : '暂停' }}</span>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/product/v2?competitor_id=1">竞品详情</a>
+                <a href="/report">分析报告</a>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card pending">
+                <div class="stat-value">{{ stats.pending }}</div>
+                <div class="stat-label">待处理告警</div>
+            </div>
+            <div class="stat-card p0">
+                <div class="stat-value">{{ countBySeverity('P0') }}</div>
+                <div class="stat-label">P0 严重</div>
+            </div>
+            <div class="stat-card p1">
+                <div class="stat-value">{{ countBySeverity('P1') }}</div>
+                <div class="stat-label">P1 重要</div>
+            </div>
+            <div class="stat-card p2">
+                <div class="stat-value">{{ countBySeverity('P2') }}</div>
+                <div class="stat-label">P2 提示</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:var(--neon-green);">{{ stats.recent_24h }}</div>
+                <div class="stat-label">24h 新增</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:var(--neon-cyan);">{{ stats.total }}</div>
+                <div class="stat-label">总计告警</div>
+            </div>
+        </div>
+
+        <!-- Alert Feed -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">告警时间线</span>
+                <button class="ack-btn" @click="ackAll">全部确认</button>
+            </div>
+            <div class="panel-body" style="max-height:500px;overflow-y:auto;">
+                <div v-if="alerts.length === 0" class="empty-state">没有告警记录</div>
+                <div v-for="a in alerts" :key="a.id" :class="['alert-row', { pending: !a.is_read }]">
+                    <span :class="['severity-badge', normSeverity(a.severity)]">{{ normSeverity(a.severity) }}</span>
+                    <span class="alert-time">{{ formatTime(a.triggered_at) }}</span>
+                    <span class="alert-comp">{{ a.competitor_name || '#' + a.competitor_id }}</span>
+                    <span class="alert-msg">{{ a.message }}</span>
+                    <button v-if="!a.is_read" class="ack-btn" @click="acknowledge(a.id)">确认</button>
+                    <span v-else style="color:var(--text-dim);font-size:10px;">已读</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Rules -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">告警规则</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);">{{ rules.length }} 条规则</span>
+            </div>
+            <div class="panel-body">
+                <table v-if="rules.length" class="rules-table">
+                    <thead><tr><th>规则名</th><th>竞品</th><th>类型</th><th>阈值</th><th>状态</th></tr></thead>
+                    <tbody>
+                        <tr v-for="r in rules" :key="r.id">
+                            <td style="color:var(--text-primary);">{{ r.rule_name || '-' }}</td>
+                            <td style="color:var(--text-data);">{{ r.competitor_name }}</td>
+                            <td>{{ r.rule_type }}</td>
+                            <td>{{ r.threshold }}</td>
+                            <td>
+                                <span :class="['toggle', r.is_active ? 'on' : 'off']" :title="r.is_active ? '已启用' : '已禁用'"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-else class="empty-state">暂无告警规则</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    const { createApp, ref, reactive, onMounted, onUnmounted } = Vue;
+    createApp({
+        setup() {
+            const alerts = ref([]);
+            const stats = ref({ pending:0, by_severity:[], total:0, recent_24h:0 });
+            const rules = ref([]);
+            const autoRefresh = ref(true);
+            let timer = null;
+
+            function formatTime(ts) {
+                if (!ts) return '';
+                return new Date(ts).toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+            }
+
+            const SEV_MAP = { critical:'P0', warning:'P1', info:'P2' };
+            function normSeverity(s) { return SEV_MAP[s] || s || 'P2'; }
+            function countBySeverity(target) {
+                let cnt = 0;
+                (stats.value.by_severity || []).forEach(s => {
+                    if (normSeverity(s.severity) === target) cnt += s.cnt;
+                });
+                return cnt;
+            }
+
+            async function fetchAlerts() {
+                try {
+                    const r = await fetch('/api/alerts?limit=50');
+                    const j = await r.json();
+                    if (j.success) alerts.value = j.data;
+                } catch(e) { console.error('alerts:', e); }
+            }
+
+            async function fetchStats() {
+                try {
+                    const r = await fetch('/api/alerts/stats');
+                    const j = await r.json();
+                    if (j.success) stats.value = j.data;
+                } catch(e) { console.error('stats:', e); }
+            }
+
+            async function fetchRules() {
+                try {
+                    const r = await fetch('/api/alerts/rules');
+                    const j = await r.json();
+                    if (j.success) rules.value = j.data;
+                } catch(e) { console.error('rules:', e); }
+            }
+
+            async function acknowledge(id) {
+                try {
+                    await fetch(`/api/alerts/${id}/acknowledge`, { method:'POST' });
+                    const a = alerts.value.find(x => x.id === id);
+                    if (a) a.is_read = 1;
+                    stats.value.pending = Math.max(0, stats.value.pending - 1);
+                } catch(e) { console.error('ack:', e); }
+            }
+
+            function ackAll() {
+                alerts.value.filter(a => !a.is_read).forEach(a => acknowledge(a.id));
+            }
+
+            async function refresh() {
+                await Promise.all([fetchAlerts(), fetchStats(), fetchRules()]);
+            }
+
+            onMounted(() => {
+                refresh();
+                timer = setInterval(refresh, 10000);
+            });
+            onUnmounted(() => { if (timer) clearInterval(timer); });
+
+            return { alerts, stats, rules, autoRefresh, formatTime, normSeverity, countBySeverity, acknowledge, ackAll };
+        }
+    }).mount('#alerts-app');
+</script>
+</body>
+</html>

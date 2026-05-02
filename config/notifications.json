@@ -1,0 +1,46 @@
+{
+  "channels": [
+    {
+      "name": "email",
+      "type": "email",
+      "url": "",
+      "enabled": false,
+      "description": "邮件通知 (mailto://user:pass@smtp:port/from@addr)"
+    },
+    {
+      "name": "slack",
+      "type": "slack",
+      "url": "",
+      "enabled": false,
+      "description": "Slack Webhook (slack://token@channel)"
+    },
+    {
+      "name": "dingtalk",
+      "type": "dingtalk",
+      "url": "",
+      "enabled": false,
+      "description": "钉钉通知 (dingtalk://token)"
+    },
+    {
+      "name": "wechat_work",
+      "type": "wechat_work",
+      "url": "",
+      "enabled": false,
+      "description": "企业微信 (wechatwork://corpid/secret/agentid)"
+    },
+    {
+      "name": "telegram",
+      "type": "telegram",
+      "url": "",
+      "enabled": false,
+      "description": "Telegram (tgram://bottoken/chatid)"
+    },
+    {
+      "name": "discord",
+      "type": "discord",
+      "url": "",
+      "enabled": false,
+      "description": "Discord Webhook (discord://webhookid/webhooktoken)"
+    }
+  ]
+}
