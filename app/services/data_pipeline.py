@@ -41,6 +41,7 @@ class DataPipeline:
     def _session(self):
         if self._injected_db:
             yield self._injected_db
+            self._injected_db.flush()
         else:
             from app.core.database import SessionLocal
             session = SessionLocal()

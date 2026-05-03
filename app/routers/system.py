@@ -332,8 +332,8 @@ def _get_sentiment_trend(competitor_id: int, days: int = 30) -> List[Dict[str, A
         db.close()
 
 
-def _get_llm_enhanced_report() -> Dict[str, Any]:
-    """生成 LLM 增强的分析报告，降级返回基础分析"""
+def _get_enhanced_report() -> Dict[str, Any]:
+    """生成规则引擎增强的分析报告，降级返回基础分析"""
     db = SessionLocal()
     try:
         # 获取所有竞品
@@ -362,12 +362,12 @@ def _get_llm_enhanced_report() -> Dict[str, Any]:
             "competitors": competitors,
             "changes": changes,
             "generated_at": datetime.now().isoformat(),
-            "llm_used": False,
+            "analysis_used": False,
         }
 
-        # 尝试 LLM 分析
+        # 规则引擎分析
         try:
-            from app.services.llm_analysis_service import is_available, generate_competitor_insight
+            from app.services.analysis_engine import is_available, generate_competitor_insight
 
             if is_available():
                 insights = []
@@ -389,10 +389,10 @@ def _get_llm_enhanced_report() -> Dict[str, Any]:
                             "recommendations": insight.get("recommendations", []),
                         })
                 if insights:
-                    report["llm_insights"] = insights
-                    report["llm_used"] = True
+                    report["insights"] = insights
+                    report["analysis_used"] = True
         except Exception:
-            logger.warning("LLM 分析增强失败", exc_info=True)
+            logger.warning("规则引擎分析增强失败", exc_info=True)
 
         # 构建基础分析指标
         total_share = sum(c.market_share or 0 for c in comps)
@@ -479,6 +479,6 @@ async def api_sentiment_trend(
 
 @router.get("/report/enhanced")
 async def api_enhanced_report():
-    """LLM 增强的分析报告"""
-    data = await run_sync_function(_get_llm_enhanced_report)
+    """规则引擎增强的分析报告"""
+    data = await run_sync_function(_get_enhanced_report)
     return {"success": True, "data": data}

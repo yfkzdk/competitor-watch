@@ -410,7 +410,7 @@
 
                 async function fetchData() {
                     try {
-                        // Try LLM-enhanced report first
+                        // Try rule-engine enhanced report first
                         let reportData = null;
                         try {
                             const reportResp = await fetch('/api/report/enhanced');
@@ -427,11 +427,11 @@
                             competitors.value = compData.data;
                         }
 
-                        // If we have LLM-enhanced data, use it
+                        // If we have rule-engine enhanced data, use it
                         if (reportData) {
                             competitors.value = reportData.competitors || competitors.value;
                             changes.value = reportData.changes || [];
-                            llmUsed.value = reportData.llm_used || false;
+                            llmUsed.value = reportData.analysis_used || false;
 
                             const agg = reportData.aggregates || {};
                             marketMetrics.value = [
@@ -442,11 +442,11 @@
                                 { value: (agg.competitor_count || 0) + ' 家', label: '监控竞品数' },
                             ];
 
-                            // LLM insights
-                            if (reportData.llm_insights && reportData.llm_insights.length) {
-                                aiAnalysis.value = reportData.llm_insights.map(ins => ({
+                            // Rule-engine insights
+                            if (reportData.insights && reportData.insights.length) {
+                                aiAnalysis.value = reportData.insights.map(ins => ({
                                     type: 'opportunity',
-                                    title: ins.competitor + ' AI 分析',
+                                    title: ins.competitor + ' 分析',
                                     content: (ins.insight || '') + (ins.evidence && ins.evidence.length ? ' (置信度: ' + ((ins.confidence || 0.7) * 100).toFixed(0) + '%)' : ''),
                                 }));
                             }

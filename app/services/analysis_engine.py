@@ -1,8 +1,9 @@
 """
-LLM Analysis Service — rule-based competitive analysis engine.
+Analysis Engine — rule-based competitive analysis using metric thresholds.
 
-When no external LLM backend is available, uses metric thresholds and
-templated Chinese summaries to produce reasonable analysis output.
+Evaluates competitor positioning across growth, pricing, user satisfaction,
+and innovation velocity dimensions. Uses templated Chinese summaries without
+requiring an external LLM API.
 """
 import logging
 import random
@@ -143,7 +144,7 @@ def summarize_change(competitor_name: str, change_type: str, change_data: Dict) 
     )
     if len(summary) > 50:
         summary = summary[:47] + "..."
-    logger.info(f"[LLM/Rule] Summarized change for {competitor_name}: {summary}")
+    logger.info(f"[AnalysisEngine] Summarized change for {competitor_name}: {summary}")
     return summary
 
 
@@ -154,7 +155,7 @@ def generate_competitor_insight(competitor_name: str, metrics: Dict) -> Optional
     recommendations = _build_recommendations(category, metrics)
     confidence = round(random.uniform(0.65, 0.85), 2)
 
-    logger.info(f"[LLM/Rule] Insight for {competitor_name}: category={category}, confidence={confidence}")
+    logger.info(f"[AnalysisEngine] Insight for {competitor_name}: category={category}, confidence={confidence}")
     return {
         "insight": insight,
         "evidence": evidence,
