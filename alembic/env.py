@@ -10,7 +10,7 @@ from alembic import context
 # PYTHONPATH, so we must explicitly add the project root here.
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models import Base
+from app.core.models import Base
 
 config = context.config
 
