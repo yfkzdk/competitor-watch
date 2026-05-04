@@ -278,11 +278,11 @@ print(f"变更记录: {db.query(Change).count()} 条")
 
 # ── 7. 生成分析报告 ──────────────────────────────────────────
 REPORT_DATA = [
-    (1, "comprehensive", "阿里云 Q2 竞争态势分析", "阿里云在本季度通过通义千问降价和ECS升级保持了竞争力。价格指数稳定在95左右，用户满意度维持在4.2。主要风险来自华为云AI领域的激进扩张。", 0.82, "rule-engine+llm", 5),
-    (2, "comprehensive", "腾讯云 Q2 策略评估", "腾讯云CDN和音视频产品线维持领先，但IaaS层增长放缓。TDSQL在金融行业取得关键POC突破，Oracle兼容成为核心卖点。", 0.78, "rule-engine+llm", 5),
-    (3, "comprehensive", "华为云 Q2 增长分析", "华为云凭借盘古大模型和GaussDB两大拳头产品实现18%增长。ModelArts成为AI训练首选平台。政企市场的定制化能力是重要护城河。", 0.85, "rule-engine+llm", 5),
-    (4, "comprehensive", "AWS 中国 Q2 市场回顾", "AWS中国区受Graviton3上线和S3降价推动增长5%。但整体增速放缓，面临本土厂商价格和服务本地化的双重挤压。", 0.76, "rule-engine+llm", 5),
-    (5, "comprehensive", "百度 AI 云 Q2 突破分析", "百度凭借文心一言超低价策略和竞价实例上线实现22%高增长。AI原生定位清晰但IaaS基础层仍需补课。", 0.80, "rule-engine+llm", 5),
+    (1, "comprehensive", "阿里云 Q2 竞争态势分析", "阿里云在本季度通过通义千问降价和ECS升级保持了竞争力。价格指数稳定在95左右，用户满意度维持在4.2。主要风险来自华为云AI领域的激进扩张。", 0.82, "rule-engine", 5),
+    (2, "comprehensive", "腾讯云 Q2 策略评估", "腾讯云CDN和音视频产品线维持领先，但IaaS层增长放缓。TDSQL在金融行业取得关键POC突破，Oracle兼容成为核心卖点。", 0.78, "rule-engine", 5),
+    (3, "comprehensive", "华为云 Q2 增长分析", "华为云凭借盘古大模型和GaussDB两大拳头产品实现18%增长。ModelArts成为AI训练首选平台。政企市场的定制化能力是重要护城河。", 0.85, "rule-engine", 5),
+    (4, "comprehensive", "AWS 中国 Q2 市场回顾", "AWS中国区受Graviton3上线和S3降价推动增长5%。但整体增速放缓，面临本土厂商价格和服务本地化的双重挤压。", 0.76, "rule-engine", 5),
+    (5, "comprehensive", "百度 AI 云 Q2 突破分析", "百度凭借文心一言超低价策略和竞价实例上线实现22%高增长。AI原生定位清晰但IaaS基础层仍需补课。", 0.80, "rule-engine", 5),
 ]
 
 for (cid, rtype, title, summary, conf, model, days_ago) in REPORT_DATA:

@@ -45,7 +45,7 @@ MISSING["/api/report/enhanced"] = {
         "competitors": competitors,
         "changes": changes,
         "generated_at": "2026-05-01T13:29:41",
-        "llm_used": False,
+        "analysis_used": False,
         "aggregates": {
             "total_market_share": round(total_share, 1),
             "avg_price_index": round(avg_price, 1),

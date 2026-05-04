@@ -259,11 +259,11 @@
             <!-- Header -->
             <header class="report-header">
                 <h1>竞品动态分析报告</h1>
-                <div class="subtitle">AI-Powered Competitive Intelligence</div>
+                <div class="subtitle">Rule-Engine Powered Competitive Intelligence</div>
                 <div class="meta-bar">
                     <span>报告时间: <b>{{ reportTime }}</b></span>
                     <span>竞品覆盖: <b>{{ competitors.length }} 家</b></span>
-                    <span>分析引擎: <b :style="{ color: llmUsed ? 'var(--neon-green)' : 'var(--neon-amber)' }">{{ llmUsed ? 'AI 增强' : '规则引擎' }}</b></span>
+                    <span>分析引擎: <b :style="{ color: analysisUsed ? 'var(--neon-green)' : 'var(--neon-amber)' }">{{ analysisUsed ? '规则增强' : '基础分析' }}</b></span>
                 </div>
             </header>
 
@@ -341,10 +341,10 @@
                 </table>
             </section>
 
-            <!-- Section 4: AI Analysis -->
-            <section class="section" v-if="aiAnalysis.length">
-                <h2 class="section-title">IV. AI 战略分析</h2>
-                <div class="insight-box" v-for="(item, i) in aiAnalysis" :key="i" :class="item.type">
+            <!-- Section 4: Rule Insights -->
+            <section class="section" v-if="insightList.length">
+                <h2 class="section-title">IV. 竞品洞察</h2>
+                <div class="insight-box" v-for="(item, i) in insightList" :key="i" :class="item.type">
                     <h3>{{ item.title }}</h3>
                     <p>{{ item.content }}</p>
                 </div>
@@ -374,7 +374,7 @@
             </section>
 
             <footer class="footer">
-                <p>赛博监控 v2.0 // 竞品监控平台 | 报告由 AI 自动生成 | {{ reportTime }}</p>
+                <p>赛博监控 v2.0 // 竞品监控平台 | 报告由规则引擎生成 | {{ reportTime }}</p>
             </footer>
         </div>
     </div>
@@ -388,7 +388,7 @@
                 const reportTime = ref('');
                 const competitors = ref([]);
                 const changes = ref([]);
-                const aiAnalysis = ref([]);
+                const insightList = ref([]);
 
                 const summary = ref({
                     situation: '加载中...',
@@ -399,7 +399,7 @@
                 const marketMetrics = ref([]);
                 const recommendations = ref([]);
                 const confidenceItems = ref([]);
-                const llmUsed = ref(false);
+                const analysisUsed = ref(false);
 
                 function formatDate(d) {
                     if (!d) return '';
@@ -431,7 +431,7 @@
                         if (reportData) {
                             competitors.value = reportData.competitors || competitors.value;
                             changes.value = reportData.changes || [];
-                            llmUsed.value = reportData.analysis_used || false;
+                            analysisUsed.value = reportData.analysis_used || false;
 
                             const agg = reportData.aggregates || {};
                             marketMetrics.value = [
@@ -444,7 +444,7 @@
 
                             // Rule-engine insights
                             if (reportData.insights && reportData.insights.length) {
-                                aiAnalysis.value = reportData.insights.map(ins => ({
+                                insightList.value = reportData.insights.map(ins => ({
                                     type: 'opportunity',
                                     title: ins.competitor + ' 分析',
                                     content: (ins.insight || '') + (ins.evidence && ins.evidence.length ? ' (置信度: ' + ((ins.confidence || 0.7) * 100).toFixed(0) + '%)' : ''),
@@ -471,10 +471,10 @@
                             ];
                         }
 
-                        if (!aiAnalysis.value.length) {
+                        if (!insightList.value.length) {
                             const leader = competitors.value.reduce((a, b) => (a.metrics?.market_share||0) > (b.metrics?.market_share||0) ? a : b, competitors.value[0]);
                             const fastest = competitors.value.reduce((a, b) => (a.metrics?.growth||0) > (b.metrics?.growth||0) ? a : b, competitors.value[0]);
-                            aiAnalysis.value = [
+                            insightList.value = [
                                 { type: 'opportunity', title: '价格竞争格局', content: `当前价格指数最低的是 ${competitors.value.reduce((a,b) => (a.metrics?.price_index||99) < (b.metrics?.price_index||99) ? a : b)?.name}，最高的是 ${competitors.value.reduce((a,b) => (a.metrics?.price_index||0) > (b.metrics?.price_index||0) ? a : b)?.name}。价格差距反映出差异化竞争策略。` },
                                 { type: '', title: '创新速度分析', content: `${fastest?.name} 增长最快(${fastest?.metrics?.growth?.toFixed(1)}%)，${leader?.name} 市场份额最大。建议重点关注产品迭代方向。` },
                                 { type: 'risk', title: '市场风险', content: `前2大竞品合计份额 ${((competitors.value[0]?.metrics?.market_share||0)+(competitors.value[1]?.metrics?.market_share||0)).toFixed(1)}%，需警惕头部竞品的挤压式竞争策略。` },
@@ -485,7 +485,7 @@
                         const leader = competitors.value.reduce((a, b) => (a.metrics?.market_share||0) > (b.metrics?.market_share||0) ? a : b, competitors.value[0]);
                         const fastest = competitors.value.reduce((a, b) => (a.metrics?.growth||0) > (b.metrics?.growth||0) ? a : b, competitors.value[0]);
                         summary.value = {
-                            situation: `监控中的 ${competitors.value.length} 家竞品整体竞争格局稳定。${leader?.name} 以 ${leader?.metrics?.market_share?.toFixed(1)}% 市场份额领先，${fastest?.name} 以 ${fastest?.metrics?.growth?.toFixed(1)}% 的增长率快速追赶。${llmUsed.value ? '本报告由 AI 辅助生成。' : ''}`,
+                            situation: `监控中的 ${competitors.value.length} 家竞品整体竞争格局稳定。${leader?.name} 以 ${leader?.metrics?.market_share?.toFixed(1)}% 市场份额领先，${fastest?.name} 以 ${fastest?.metrics?.growth?.toFixed(1)}% 的增长率快速追赶。${analysisUsed.value ? '本报告由规则引擎生成。' : ''}`,
                             opportunity: `发现 ${competitors.value.filter(c => (c.metrics?.growth||0) > 20).length} 家竞品高速增长，主要集中在 AI 算力和大模型服务领域。建议关注高增长细分赛道，评估进入或合作机会。`,
                             risk: `当前主要风险来自价格战和技术迭代速度。${competitors.value.filter(c => (c.metrics?.price_index||90) < 85).length} 家竞品采取了激进的价格策略。需在差异化价值上建立壁垒。`,
                         };
@@ -505,7 +505,7 @@
                         const dataQuality = Math.min(95, 60 + dataPoints * 2);
                         confidenceItems.value = [
                             { label: '数据完整度', value: Math.min(95, 55 + competitors.value.length * 8) },
-                            { label: '分析深度', value: llmUsed.value ? 88 : 72 },
+                            { label: '分析深度', value: analysisUsed.value ? 88 : 72 },
                             { label: '时效性', value: 90 },
                             { label: '综合可信度', value: dataQuality },
                         ];
@@ -529,9 +529,9 @@
                 onMounted(fetchData);
 
                 return {
-                    loading, reportTime, competitors, changes, aiAnalysis,
+                    loading, reportTime, competitors, changes, insightList,
                     summary, marketMetrics, recommendations, confidenceItems,
-                    formatDate, llmUsed,
+                    formatDate, analysisUsed,
                 };
             }
         }).mount('#report-app');

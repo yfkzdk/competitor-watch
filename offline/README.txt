@@ -8,12 +8,12 @@
   · index_v2_offline.html           — 数据仪表板（概览 + 竞品管理 + 图表）
   · product_detail_v2_offline.html  — 竞品详情（价格趋势、情感、变更diff）
   · alerts_v2_offline.html          — 告警中心（告警时间线 + 规则管理）
-  · report_v2_offline.html          — 分析报告（AI 战略洞察 + 行动建议）
+  · report_v2_offline.html          — 分析报告（竞品洞察 + 行动建议）
 
 【技术栈】
   后端:  Python / FastAPI / SQLite / APScheduler
   前端:  Vue 3 / Chart.js / WebSocket
-  分析:  jieba 中文分词 / TF-IDF 关键词提取 / LLM 集成
+  分析:  jieba 中文分词 / TF-IDF 关键词提取 / 规则引擎分析
 
 【网络需求】
   · Vue 3 / Chart.js 从 CDN 加载（首次访问需网络，浏览器会缓存）
@@ -26,7 +26,7 @@
   · 500+ 条用户评论（含情感评分）
   · 300+ 条变更检测记录
   · 30+ 条告警记录
-  · 15 条 AI 分析报告
+  · 15 条规则分析报告
 
 【关于项目】
   这是一个全栈个人项目，用于展示：
