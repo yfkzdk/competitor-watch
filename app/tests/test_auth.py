@@ -86,7 +86,7 @@ class TestAPIKeyMiddleware:
         public = {"/", "/health", "/docs", "/redoc", "/openapi.json", "/static"}
         from app.main import APIKeyMiddleware
         for path in public:
-            assert any(path.startswith(p) for p in APIKeyMiddleware.PUBLIC_PATHS), \
+            assert any(path.startswith(p) for p in APIKeyMiddleware.PUBLIC_PREFIXES), \
                 f"{path} should be public"
 
     def test_api_key_middleware_disabled_when_no_key(self):
@@ -107,15 +107,15 @@ class TestAPIKeyMiddleware:
                 return {"called": True}
 
             # Should pass through without 401
-            # (We verify the middleware exists and has correct PUBLIC_PATHS)
-            assert len(APIKeyMiddleware.PUBLIC_PATHS) > 0
+            # (We verify the middleware exists and has correct PUBLIC_PREFIXES)
+            assert len(APIKeyMiddleware.PUBLIC_PREFIXES) > 0
         finally:
             settings.api_key = original
 
     def test_api_key_middleware_structure(self):
         """Verify middleware has correct public paths."""
         from app.main import APIKeyMiddleware
-        paths = APIKeyMiddleware.PUBLIC_PATHS
+        paths = APIKeyMiddleware.PUBLIC_PREFIXES
         assert "/health" in paths
         assert "/docs" in paths
         assert "/" in paths

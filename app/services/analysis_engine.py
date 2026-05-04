@@ -1,12 +1,12 @@
 """
-Analysis Engine — rule-based competitive analysis using metric thresholds.
+Analysis Engine — deterministic rule-based competitive analysis.
 
 Evaluates competitor positioning across growth, pricing, user satisfaction,
-and innovation velocity dimensions. Uses templated Chinese summaries without
-requiring an external LLM API.
+and innovation velocity dimensions. All outputs are computed from input metrics;
+no randomness, no external API dependency.
 """
+import hashlib
 import logging
-import random
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -20,19 +20,15 @@ CHANGE_TEMPLATES = {
     "feature_update": [
         "上线{product_desc}功能，技术迭代信号明显",
         "优化{product_desc}体验，用户留存策略加码",
-        "下线旧版{product_desc}，产品线精简整合",
     ],
     "marketing_campaign": [
         "推出{product_desc}营销活动，品牌声量上升",
-        "联合{partner}发布{product_desc}，生态扩张迹象",
     ],
     "new_product": [
         "发布全新产品{product_desc}，进入新赛道",
-        "{product_desc}正式商用，差异化竞争策略明确",
     ],
     "default": [
         "在{change_type}方面有{product_desc}变动，需持续关注",
-        "{product_desc}相关调整，短期影响待观察",
     ],
 }
 
@@ -40,12 +36,10 @@ INSIGHT_TEMPLATES = {
     "aggressive": [
         "市场进攻态势明显，建议加强差异化应对",
         "价格战策略激进，需关注利润空间变化",
-        "积极扩张中，短期内可能蚕食我方份额",
     ],
     "rising": [
         "成长势头强劲，创新能力驱动增长",
         "用户口碑上升，产品竞争力持续增强",
-        "新兴力量崛起，值得重点监控",
     ],
     "stable": [
         "表现平稳，经营节奏趋于成熟",
@@ -54,7 +48,6 @@ INSIGHT_TEMPLATES = {
     "defensive": [
         "以守为攻，维护现有份额的策略较为稳健",
         "用户留存导向，产品体验持续优化中",
-        "品牌护城河效应显现，竞争壁垒较强",
     ],
     "declining": [
         "增长放缓，可能需要战略性调整",
@@ -63,9 +56,10 @@ INSIGHT_TEMPLATES = {
 }
 
 
-def _pick_template(templates: Dict, key: str, default_key: str = "default") -> str:
-    pool = templates.get(key, templates.get(default_key, ["数据变动"]))
-    return random.choice(pool) if isinstance(pool, list) else pool
+def _stable_pick(pool: list, seed: str) -> str:
+    """Deterministic selection based on content hash, not random."""
+    h = int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
+    return pool[h % len(pool)]
 
 
 def _classify_competitor(metrics: Dict) -> str:
@@ -115,6 +109,13 @@ def _build_evidence(metrics: Dict) -> List[str]:
     return evidence
 
 
+def _compute_confidence(evidence_count: int, metric_variance: float) -> float:
+    """Confidence from evidence depth and metric consistency, not random."""
+    base = min(0.85, 0.50 + evidence_count * 0.08)
+    penalty = min(0.20, metric_variance * 0.01)
+    return round(base - penalty, 2)
+
+
 def _build_recommendations(category: str, metrics: Dict) -> List[str]:
     recs = {
         "aggressive": ["提升产品差异化功能，避免纯粹价格战", "监控对方利润空间变化，寻找定价节奏窗口"],
@@ -138,10 +139,9 @@ def summarize_change(competitor_name: str, change_type: str, change_data: Dict) 
     delta = change_data.get("price_delta") or change_data.get("delta") or "0"
     partner = change_data.get("partner") or change_data.get("vendor") or "合作伙伴"
 
-    template = _pick_template(CHANGE_TEMPLATES, change_type)
-    summary = template.format(
-        delta=delta, product_desc=product_desc, partner=partner, change_type=change_type
-    )
+    pool = CHANGE_TEMPLATES.get(change_type, CHANGE_TEMPLATES["default"])
+    template = _stable_pick(pool, f"{change_type}:{product_desc}:{delta}")
+    summary = template.format(delta=delta, product_desc=product_desc, partner=partner, change_type=change_type)
     if len(summary) > 50:
         summary = summary[:47] + "..."
     logger.info(f"[AnalysisEngine] Summarized change for {competitor_name}: {summary}")
@@ -150,10 +150,15 @@ def summarize_change(competitor_name: str, change_type: str, change_data: Dict) 
 
 def generate_competitor_insight(competitor_name: str, metrics: Dict) -> Optional[Dict]:
     category = _classify_competitor(metrics)
-    insight = _pick_template(INSIGHT_TEMPLATES, category)
+    pool = INSIGHT_TEMPLATES.get(category, INSIGHT_TEMPLATES["stable"])
+    insight = _stable_pick(pool, f"{competitor_name}:{category}")
     evidence = _build_evidence(metrics)
+
+    metric_values = [metrics.get(k, 0) for k in ("growth", "price_index", "user_rating", "innovation_velocity")]
+    variance = max(metric_values) - min(metric_values)
+    confidence = _compute_confidence(len(evidence), variance)
+
     recommendations = _build_recommendations(category, metrics)
-    confidence = round(random.uniform(0.65, 0.85), 2)
 
     logger.info(f"[AnalysisEngine] Insight for {competitor_name}: category={category}, confidence={confidence}")
     return {

@@ -47,16 +47,22 @@ app.add_middleware(SlowAPIMiddleware)
 
 # ── API Key 认证中间件 ────────────────────────────────────────
 class APIKeyMiddleware(BaseHTTPMiddleware):
-    """API Key 认证（仅在 settings.api_key 非空时启用）"""
+    """API Key 认证 — GET 请求和公开前缀放行，写操作 (POST/PUT/DELETE/PATCH) 需鉴权"""
 
-    PUBLIC_PATHS = {"/", "/health", "/docs", "/redoc", "/openapi.json", "/static"}
+    PUBLIC_PREFIXES = {
+        "/", "/health", "/docs", "/redoc", "/openapi.json", "/static",
+        "/product", "/v3", "/v1", "/api", "/ws",
+    }
 
     async def dispatch(self, request: Request, call_next):
         if not settings.api_key:
             return await call_next(request)
 
         path = request.url.path
-        if any(path.startswith(p) for p in self.PUBLIC_PATHS):
+        if any(path.startswith(p) for p in self.PUBLIC_PREFIXES):
+            return await call_next(request)
+
+        if request.method == "GET":
             return await call_next(request)
 
         api_key = request.headers.get("X-API-Key", "")

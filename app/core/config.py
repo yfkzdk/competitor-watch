@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     cors_headers: List[str] = ["*"]
 
     # API 安全
-    api_key: str = ""  # 空则不启用认证
+    api_key: str = "demo-secret-key"  # 生产环境请通过环境变量覆盖
     rate_limit_per_minute: int = 60
 
     # 通知

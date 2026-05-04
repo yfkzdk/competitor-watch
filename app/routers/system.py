@@ -432,7 +432,7 @@ async def api_business_report(competitor_name: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"关键词提取失败 (competitor_id={comp_id}): {e}")
+        logger.error(f"报告生成失败 (competitor_name={competitor_name}): {e}")
         raise HTTPException(
             status_code=500,
             detail={
